@@ -1,0 +1,32 @@
+{
+  "name": "peer-orchestra",
+  "version": "0.1.0",
+  "description": "Multi-agent orchestration for Claude Code. Themed persona agents + BMAD workflow engine + self-learning hooks.",
+  "main": "src/index.js",
+  "bin": {
+    "peer-orchestra": "src/index.js"
+  },
+  "scripts": {
+    "test": "node tests/scaffold-test.js",
+    "lint": "echo 'No lint configured yet'"
+  },
+  "keywords": [
+    "claude-code",
+    "multi-agent",
+    "orchestration",
+    "claude-peers",
+    "ai-agents",
+    "vibe-coding",
+    "bmad",
+    "genshin"
+  ],
+  "author": "Varun Moka",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/varunmoka7/peer-orchestra.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
