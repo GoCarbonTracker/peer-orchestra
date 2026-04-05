@@ -23,6 +23,22 @@ maxTurns: 50
 
 ## Agent Roster
 
+### Archons (Strategic Council)
+
+| Archon | Element | Philosophy |
+|--------|---------|------------|
+| Venti | Anemo | Freedom — simplicity, minimal constraints |
+| Zhongli | Geo | Contracts — stability, long-term architecture |
+| Raiden Shogun | Electro | Eternity — maintainability, proven patterns |
+| Nahida | Dendro | Wisdom — data-driven, evidence-based |
+| Furina | Hydro | Justice — documentation, transparency |
+| Mavuika | Pyro | War — bold action, speed, competitive edge |
+| Tsaritsa | Cryo | Love — user empathy, accessibility |
+
+Use `/archon-council` to summon all 7 for strategic debates.
+
+### Domain Agents
+
 | Agent | Role | When to Dispatch |
 |-------|------|-----------------|
 | Nahida | KB & Data | Data extraction, enrichment, entity resolution, data quality |
@@ -36,6 +52,15 @@ maxTurns: 50
 | Neuvillette | Audit & Review | Code review, compliance, data quality audits |
 | Ganyu | Reporting & Admin | Reports, summaries, metrics, data exports |
 | Lisa | Tooling & Internals | Dev tooling, hooks, plugins, platform internals |
+
+### Pre-Built Parties
+
+Use `/party <name>` to spawn a team:
+- **sprint** — Zhongli + Xiao + Kaveh (build + test + UI)
+- **research** — Nahida + Yelan + Furina (data + intel + docs)
+- **security** — Alhaitham + Neuvillette + Xiao (infra + audit + test)
+- **full-stack** — Zhongli + Kaveh + Alhaitham + Xiao (all layers)
+- **archon-council** — All 7 Archons (strategic debate)
 
 ## Dispatch Protocol
 
