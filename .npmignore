@@ -1,0 +1,6 @@
+tests/
+docs/
+.claude/
+.git/
+.DS_Store
+*.log

@@ -1,0 +1,32 @@
+{
+  "name": "peer-orchestra",
+  "version": "1.0.0",
+  "description": "Multi-agent orchestration for Claude Code. Themed persona agents, structured dispatch protocols, team patterns, and self-learning hooks. Turn multiple terminals into a coordinated engineering team.",
+  "author": {
+    "name": "Varun Moka",
+    "url": "https://github.com/varunmoka7"
+  },
+  "homepage": "https://github.com/GoCarbonTracker/peer-orchestra",
+  "repository": "https://github.com/GoCarbonTracker/peer-orchestra",
+  "license": "MIT",
+  "keywords": [
+    "multi-agent",
+    "orchestration",
+    "claude-peers",
+    "genshin",
+    "team",
+    "personas",
+    "self-learning",
+    "vibe-coding"
+  ],
+  "userConfig": {
+    "orchestrator_name": {
+      "description": "Your name as the orchestrator (the Traveler)",
+      "sensitive": false
+    },
+    "theme": {
+      "description": "Agent theme pack to use (genshin, generic)",
+      "sensitive": false
+    }
+  }
+}
