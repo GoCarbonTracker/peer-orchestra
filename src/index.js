@@ -89,6 +89,21 @@ function generateSettingsJson(targetDir) {
               type: 'command',
               command: 'python3 .claude/hooks/session-end-peer-memory.py',
             },
+            {
+              type: 'command',
+              command: 'python3 .claude/hooks/session-learning-extractor.py',
+            },
+          ],
+        },
+      ],
+      PreCompact: [
+        {
+          matcher: '',
+          hooks: [
+            {
+              type: 'command',
+              command: 'python3 .claude/hooks/session-learning-extractor.py',
+            },
           ],
         },
       ],
@@ -160,22 +175,36 @@ async function main() {
     console.log('  Installed dispatch protocols and common rules');
   }
 
-  // 2. Copy hooks
+  // 2. Create agent-memory directory (project-local, per-agent SQLite DBs)
+  const agentMemoryDir = path.join(targetDir, '.claude', 'agent-memory');
+  fs.mkdirSync(agentMemoryDir, { recursive: true });
+  // Add to .gitignore if not already there
+  const gitignorePath = path.join(targetDir, '.gitignore');
+  if (fs.existsSync(gitignorePath)) {
+    const gitignore = fs.readFileSync(gitignorePath, 'utf-8');
+    if (!gitignore.includes('.claude/agent-memory')) {
+      fs.appendFileSync(gitignorePath, '\n# Agent memory DBs (per-project, not tracked)\n.claude/agent-memory/\n');
+      console.log('  Added .claude/agent-memory/ to .gitignore');
+    }
+  }
+  console.log('  Created .claude/agent-memory/ for per-agent learning DBs');
+
+  // 3. Copy hooks
   const hooksDir = path.join(targetDir, '.claude', 'hooks');
   fs.mkdirSync(hooksDir, { recursive: true });
   const templateHooks = path.join(TEMPLATES_DIR, 'hooks');
   if (fs.existsSync(templateHooks)) {
     copyDir(templateHooks, hooksDir);
-    console.log('  Installed self-learning hooks');
+    console.log('  Installed self-learning hooks (incl. session-learning-extractor)');
   }
 
-  // 3. Generate settings.json
+  // 4. Generate settings.json
   generateSettingsJson(targetDir);
 
-  // 4. Merge CLAUDE.md
+  // 5. Merge CLAUDE.md
   mergeClaudeMd(targetDir, name);
 
-  // 5. Install BMAD (optional)
+  // 6. Install BMAD (optional)
   const bmadDir = path.join(targetDir, '_bmad');
   if (!fs.existsSync(bmadDir)) {
     const installBmad = await ask('  Install BMAD workflow engine? (y/n) ');
