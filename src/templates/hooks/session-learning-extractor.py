@@ -386,4 +386,11 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except Exception as e:
+        print(json.dumps({
+            "hookEventName": "SessionEnd",
+            "message": f"Session learning extractor error (non-fatal): {e}",
+        }), file=sys.stderr)
+        sys.exit(0)
