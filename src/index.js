@@ -382,7 +382,7 @@ async function main() {
   // 5. Generate settings.json
   generateSettingsJson(targetDir, { dryRun });
 
-  // 5. Determine BMAD choice (before CLAUDE.md merge, so template is conditional)
+  // 6. Determine BMAD choice (before CLAUDE.md merge, so template is conditional)
   const bmadDir = path.join(targetDir, '_bmad');
   let installBmad = false;
   if (!fs.existsSync(bmadDir)) {
@@ -394,10 +394,10 @@ async function main() {
     }
   }
 
-  // 6. Merge CLAUDE.md (with BMAD section conditional on choice)
+  // 7. Merge CLAUDE.md (with BMAD section conditional on choice)
   mergeClaudeMd(targetDir, name, { dryRun, bmad: installBmad });
 
-  // 7. Install BMAD files (if chosen)
+  // 8. Install BMAD files (if chosen)
   if (installBmad) {
     if (!fs.existsSync(bmadDir)) {
       const bmadTemplate = path.join(TEMPLATES_DIR, 'bmad');
