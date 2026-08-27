@@ -47,13 +47,12 @@ All 11 domain personas now carry the same structure, and four reusable framework
 
 ## [0.2.0] — 2026-08-27
 
-0.1.0 was never published to npm — this is the first public release. Everything below reflects work done since the plugin-to-npx pivot.
+Never published to npm. Kept here as a record of the work between the plugin-to-npx pivot and 0.3.0, which is the first public release.
 
 ### Added
 - `peer-orchestra uninstall` command — removes everything `init` installed (persona files, hooks, slash commands, `.claude/agent-memory/`, the hook entries and homunculus flag it added to `.claude/settings.json`, the `.gitignore` line, and the `# Peer Orchestra` block in `CLAUDE.md`). Prompts for confirmation unless `--force`/`--no-interactive` is passed; `--dry-run` previews the plan without deleting anything. Uses a small state file (`.claude/.peer-orchestra.json`) recorded at install time so it removes exactly the theme's files, not a guess.
 - Preflight checks before any file is written: hard-fails if Node < 18 or if an existing `.claude/settings.json` isn't valid JSON; warns (without blocking) if no Python 3.8+ interpreter is found on `PATH`, since the hooks won't run without one.
 - Interactive theme prompt — `init` now asks which theme to install when `--theme` isn't passed and the session is a real TTY. Previously it silently defaulted to `genshin` with no prompt.
-- BMAD scaffold now substitutes `{{PROJECT_NAME}}` and `{{USER_NAME}}` into `_bmad/config.yaml` and `_bmad/README.md` instead of leaving the literal placeholders in the file.
 - `.github/workflows/ci.yml` — runs `npm test` on push and PR, on Node 18/20/22, with Python 3 available (the extractor test suite exercises the Python hooks directly).
 - `CONTRIBUTING.md` and this changelog.
 
