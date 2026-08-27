@@ -1,6 +1,6 @@
 {
   "name": "peer-orchestra",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Multi-agent orchestration for Claude Code \u2014 themed persona agents, structured dispatch protocol, and self-learning hooks via npx.",
   "main": "src/index.js",
   "bin": {
@@ -8,16 +8,21 @@
   },
   "files": [
     "src/",
+    "templates/",
     "themes/",
     "commands/",
-    "docs/",
+    "docs/quick-start.md",
+    "docs/hooks-guide.md",
+    "docs/agent-customization.md",
+    "docs/theme-creation-guide.md",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
     "test": "node tests/scaffold-test.js && node tests/extractor-test.js",
     "lint": "echo 'No lint configured yet'",
-    "test:all": "node tests/scaffold-test.js; s=$?; node tests/extractor-test.js; e=$?; exit $((s||e))"
+    "test:all": "node tests/scaffold-test.js; s=$?; node tests/extractor-test.js; e=$?; exit $((s||e))",
+    "prepublishOnly": "npm test"
   },
   "keywords": [
     "claude-code",

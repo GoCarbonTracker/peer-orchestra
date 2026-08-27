@@ -42,7 +42,7 @@ Orchestrator dispatches:
 
 This is the part that makes the whole thing work. Skip it and every terminal you open will just be a second orchestrator.
 
-Every Claude Code terminal in your project runs the exact same scaffolded files — there's nothing that inherently makes one terminal "Kaveh" and another "Xiao". Each terminal figures out its own identity at session start, using this priority order (`src/templates/hooks/agent-persona-loader.py`):
+Every Claude Code terminal in your project runs the exact same scaffolded files — there's nothing that inherently makes one terminal "Kaveh" and another "Xiao". Each terminal figures out its own identity at session start, using this priority order (`templates/hooks/agent-persona-loader.py`):
 
 1. **`PEER_AGENT` environment variable** — set before launching `claude`
 2. **`.peer-identity` file** in the project root — its first line is the agent name
@@ -161,11 +161,13 @@ Community themes: Naruto, Marvel, DC, LOTR, and custom. [Create your own](docs/t
 
 ```
 peer-orchestra/
-├── src/index.js                 # CLI entry point (init wizard)
-├── src/templates/               # Files scaffolded into your project
+├── src/
+│   ├── index.js                 # CLI entry point (83 lines — parseArgs, usage, command dispatch)
+│   ├── commands/                # init.js, uninstall.js
+│   └── lib/                     # fs-utils, settings, claude-md, preflight, python, state, version
+├── templates/                   # Files scaffolded into your project
 │   ├── hooks/                   # Self-learning hook scripts (Python stdlib)
 │   ├── rules/                   # Dispatch protocol + common rules
-│   ├── bmad/                    # Minimal BMAD workflow scaffold (optional, --bmad)
 │   ├── mcp/                     # claude-peers memory-recall helper script
 │   └── CLAUDE.md.template       # Orchestrator instructions
 ├── themes/
@@ -176,14 +178,13 @@ peer-orchestra/
 └── tests/                       # Scaffold + hook smoke tests
 ```
 
-### Five Layers
+### Four Layers
 
 | Layer | Purpose | Component |
 |-------|---------|-----------|
 | **Messaging** | Agent-to-agent communication | [claude-peers](https://github.com/louislva/claude-peers-mcp) |
 | **Personas** | Character personality + domain expertise | `themes/*/agents/` |
-| **Dispatch** | Structured task routing + team patterns | `src/templates/rules/` |
-| **Workflow** | Epic -> Story -> Implement discipline | BMAD engine (optional) |
+| **Dispatch** | Structured task routing + team patterns | `templates/rules/` |
 | **Evolution** | Agents grow instincts across sessions | [homunculus](https://github.com/humanplane/homunculus) |
 
 ### What Gets Installed
@@ -199,7 +200,6 @@ peer-orchestra/
 | `.claude/settings.json` | Hook registration (SessionStart, SessionEnd, UserPromptSubmit) + `plugins: { homunculus: true }` | **Merged** into an existing file if one is present — your existing hooks and plugins are preserved, not replaced |
 | `.gitignore` | Appends a `.claude/agent-memory/` entry | Appended if not already present |
 | `CLAUDE.md` | Orchestrator instructions (dispatch protocol, agent roster, self-learning explanation) | **Merged**: appended to an existing `CLAUDE.md`, or created if none exists. Skipped entirely if a `# Peer Orchestra` section is already there |
-| `_bmad/`, `_bmad-output/` | Minimal BMAD workflow scaffold (`_bmad/config.yaml`, `_bmad/README.md` — with `{{PROJECT_NAME}}`/`{{USER_NAME}}` substituted for your directory name and orchestrator name — plus `_bmad-output/planning-artifacts/{plans/STATUS.md, epics/, lessons.md}` and `_bmad-output/implementation-artifacts/`) | Only if you opt in (`--bmad` flag or the interactive prompt); skipped if `_bmad/` already exists |
 | `.claude/.peer-orchestra.json` | Small state file recording which theme and version were installed | Written by `init`, read by `uninstall` to know exactly which persona files it owns |
 
 Nothing outside these paths is touched.
@@ -222,7 +222,7 @@ To remove everything Peer Orchestra installed:
 npx peer-orchestra uninstall
 ```
 
-This removes the paths listed in the table above: `.claude/rules/agent-*.md` (theme personas + archons) and the 4 common rule files, `.claude/hooks/*.py`, `.claude/commands/*.md`, `.claude/agent-memory/`, the hook entries this tool added to `.claude/settings.json` (your own hooks are left alone), the `.claude/agent-memory/` line it added to `.gitignore`, and the `# Peer Orchestra` block it appended to `CLAUDE.md`. It does not touch `_bmad/` or `_bmad-output/` — remove those manually if you opted into BMAD and no longer want it, since they may contain your own planning work.
+This removes the paths listed in the table above: `.claude/rules/agent-*.md` (theme personas + archons) and the 4 common rule files, `.claude/hooks/*.py`, `.claude/commands/*.md`, `.claude/agent-memory/`, the hook entries this tool added to `.claude/settings.json` (your own hooks are left alone), the `.claude/agent-memory/` line it added to `.gitignore`, and the `# Peer Orchestra` block it appended to `CLAUDE.md`.
 
 By default `uninstall` prints the plan and asks for confirmation before deleting anything. Pass `--dry-run` to see the plan without a prompt and without deleting anything, or `--force` (or `--no-interactive`) to skip the confirmation prompt and remove immediately.
 
@@ -283,7 +283,6 @@ Options:
   --theme <name>      Theme: genshin (default), generic
   --name <name>       Orchestrator persona name
   --dir <path>        Target directory (default: .)
-  --bmad              Enable BMAD workflow integration
   --no-interactive    Skip prompts (requires --theme and --name)
   --dry-run           Preview what would be installed
   --force             Overwrite existing framework files (personas, hooks, commands).
@@ -316,7 +315,6 @@ Contributions welcome, especially new themes and better hooks. See [CONTRIBUTING
 
 - **[claude-peers](https://github.com/louislva/claude-peers-mcp)** by Louis — multi-terminal agent communication
 - **[homunculus](https://github.com/humanplane/homunculus)** — agent evolution engine
-- **[BMAD Method](https://github.com/bmadcode/BMAD-METHOD)** — workflow discipline
 - **[Claude Code](https://claude.ai/code)** by Anthropic — the AI powering each agent
 
 ## Disclaimer

@@ -14,3 +14,6 @@ __pycache__/
 graphify-out/
 .graphify_cached.json
 .graphify_uncached.txt
+
+# Internal planning artifacts (kept in git history, not in the repo)
+_bmad-output/

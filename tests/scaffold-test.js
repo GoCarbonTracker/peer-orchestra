@@ -40,6 +40,13 @@ function fileNotContains(dir, filePath, text) {
   return !fs.readFileSync(path.join(dir, filePath), 'utf-8').toLowerCase().includes(text.toLowerCase());
 }
 
+function runUninstall(dir, extraFlags = '--force') {
+  execSync(`node "${INIT_SCRIPT}" uninstall --dir "${dir}" ${extraFlags}`, {
+    stdio: 'pipe',
+    timeout: 15000,
+  });
+}
+
 function runInit(dir, extraFlags = '') {
   execSync(`node "${INIT_SCRIPT}" init --no-interactive --dir "${dir}" ${extraFlags}`, {
     stdio: 'pipe',
@@ -277,29 +284,29 @@ const memoryLines = gitignore2.split('\n').filter((l) => l.includes('.claude/age
 assert(memoryLines.length === 1, `agent-memory appears once in .gitignore (found ${memoryLines.length})`);
 
 // ============================================================
-// TEST SUITE 4: BMAD Integration
+// TEST SUITE 4: No BMAD Coupling
 // ============================================================
 console.log(`\n${'='.repeat(60)}`);
-console.log('TEST SUITE 4: BMAD Integration');
+console.log('TEST SUITE 4: No BMAD Coupling');
 console.log(`${'='.repeat(60)}\n`);
 
-const bmadDir = path.join(BASE_DIR, 'bmad-test');
-fs.mkdirSync(bmadDir, { recursive: true });
-runInit(bmadDir, '--theme genshin --name Paimon --bmad');
-
-console.log('BMAD enabled:');
-assert(fileExists(bmadDir, '_bmad/config.yaml'), '_bmad/config.yaml created');
-assert(fileExists(bmadDir, '_bmad-output/planning-artifacts/plans/STATUS.md'), 'STATUS.md created');
-assert(fileExists(bmadDir, '_bmad-output/planning-artifacts/lessons.md'), 'lessons.md created');
-assert(fileContains(bmadDir, 'CLAUDE.md', 'BMAD Workflow'), 'CLAUDE.md has BMAD section');
-
+// BMAD was removed in v0.3.0 — peer-orchestra scaffolds multi-agent
+// structure, not one particular planning methodology. These assertions
+// exist so the coupling cannot silently return.
 const noBmadDir = path.join(BASE_DIR, 'no-bmad-test');
 fs.mkdirSync(noBmadDir, { recursive: true });
 runInit(noBmadDir, '--theme genshin --name Paimon');
 
-console.log('\nBMAD disabled:');
-assert(!fileExists(noBmadDir, '_bmad'), 'no _bmad/ directory');
-assert(!fileContains(noBmadDir, 'CLAUDE.md', 'BMAD Workflow'), 'no BMAD section in CLAUDE.md');
+assert(!fileExists(noBmadDir, '_bmad'), 'no _bmad/ directory created');
+assert(!fileExists(noBmadDir, '_bmad-output'), 'no _bmad-output/ directory created');
+assert(!fileContains(noBmadDir, 'CLAUDE.md', 'BMAD'), 'no BMAD content in CLAUDE.md');
+
+// The removed --bmad flag must not resurrect the behaviour if a user
+// still has it in a script; unknown flags are ignored, not honoured.
+const legacyFlagDir = path.join(BASE_DIR, 'legacy-bmad-flag-test');
+fs.mkdirSync(legacyFlagDir, { recursive: true });
+runInit(legacyFlagDir, '--theme genshin --name Paimon --bmad');
+assert(!fileExists(legacyFlagDir, '_bmad'), 'legacy --bmad flag creates nothing');
 
 // ============================================================
 // TEST SUITE 5: Overwrite Safety
@@ -334,6 +341,38 @@ assert(fileExists(safetyDir, '.claude/commands/party.md'), '.claude/commands/par
 assert(fileExists(safetyDir, '.claude/commands/orchestra-status.md'), '.claude/commands/orchestra-status.md installed');
 assert(fileExists(safetyDir, '.claude/commands/archon-council.md'), '.claude/commands/archon-council.md installed');
 assert(fileExists(safetyDir, '.claude/rules/agent-venti.md'), 'genshin archon personas installed');
+
+// ============================================================
+// TEST SUITE 6: Uninstall Round-Trip
+// ============================================================
+console.log(`\n${'='.repeat(60)}`);
+console.log('TEST SUITE 6: Uninstall Round-Trip');
+console.log(`${'='.repeat(60)}\n`);
+
+const rtDir = path.join(BASE_DIR, 'roundtrip-test');
+fs.mkdirSync(path.join(rtDir, '.claude'), { recursive: true });
+fs.writeFileSync(path.join(rtDir, '.claude/settings.json'), '{\n  "mySetting": true\n}\n');
+fs.writeFileSync(path.join(rtDir, 'CLAUDE.md'), '# My Project\n\nMy notes.\n');
+fs.writeFileSync(path.join(rtDir, '.gitignore'), 'node_modules/\n');
+const rtBefore = ['.claude/settings.json', 'CLAUDE.md', '.gitignore']
+  .map((f) => fs.readFileSync(path.join(rtDir, f), 'utf-8'));
+
+runInit(rtDir, '--theme genshin --name Paimon');
+assert(fileExists(rtDir, '.claude/commands/dispatch.md'), 'commands installed before uninstall');
+
+runUninstall(rtDir);
+
+console.log('\nEverything peer-orchestra installed is removed:');
+assert(!fileExists(rtDir, '.claude/commands/dispatch.md'), 'slash commands removed');
+assert(!fileExists(rtDir, '.claude/rules/agent-zhongli.md'), 'personas removed');
+assert(!fileExists(rtDir, '.claude/hooks/agent-router.py'), 'hooks removed');
+
+console.log('\nUser-authored files restored byte-for-byte:');
+const rtAfter = ['.claude/settings.json', 'CLAUDE.md', '.gitignore']
+  .map((f) => fs.readFileSync(path.join(rtDir, f), 'utf-8'));
+assert(rtAfter[0] === rtBefore[0], 'settings.json restored exactly');
+assert(rtAfter[1] === rtBefore[1], 'CLAUDE.md restored exactly');
+assert(rtAfter[2] === rtBefore[2], '.gitignore restored exactly');
 
 // ============================================================
 // Cleanup & Summary
