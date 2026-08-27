@@ -4,7 +4,19 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [0.3.0] — 2026-08-27
 
-Repo restructure. No change to what the tool does for users beyond the BMAD removal below.
+First release in which the personas actually reach the model. Also a repo restructure and the removal of the bundled planning methodology.
+
+### Fixed — the persona system never reached the model
+
+- **Hook output used a key Claude Code discards.** Three of the four hooks emitted `{"hookEventName": ..., "message": ...}`; Claude Code reads `hookSpecificOutput.additionalContext`. Every payload was silently dropped, so the memory-recall loop wrote and read correctly and then lost the result at the final step.
+- **The persona loader never loaded the persona.** It emitted 118 bytes naming a 2.7KB file it never opened — and `.claude/rules/` is not a directory Claude Code auto-loads, so a persona only reached context if the orchestrator happened to ask another agent to read it. It now injects the persona content itself, capped at 20,000 characters.
+- **The prompt router was silent on every prompt.** It read `input_data["prompt"]`; Claude Code sends `user_prompt`. Fed a real payload it produced no output at all.
+
+### Fixed — the generic theme was half a framework
+
+Generic personas averaged 34 lines against the genshin theme's 77, with `## Session Start` missing from 11 of 12 files and `## Responsibilities` and `## Key Files` absent entirely. Anyone picking `--theme generic` — the option most professional users would choose — got substantially less than the themed alternative.
+
+All 11 domain personas now carry the same structure, and four reusable frameworks that existed only in the themed files were ported: test-failure triage categories, audit severity levels, report templates, and a research briefing format. Generic now averages 76 lines. `Key Files` tables use placeholders rather than invented paths.
 
 ### Removed — BREAKING
 
@@ -28,6 +40,8 @@ Repo restructure. No change to what the tool does for users beyond the BMAD remo
 
 ### Added
 
+- **Theme parity test** (Suite 8): asserts both themes carry the same required sections, that neither drops below 75% of the other's substance, and that no fictional character names leak into the generic theme. Nothing previously compared the themes, which is how the gap above survived unnoticed.
+- **Hook output contract test** (Suite 7): pins the `hookSpecificOutput` envelope and asserts the persona loader injects content rather than a filename.
 - **Uninstall round-trip test** (Suite 6): asserts that everything `init` installed is removed and that user-authored `settings.json`, `CLAUDE.md`, and `.gitignore` are restored byte-for-byte. This gap let a real path bug through during the restructure — `uninstall` was looking for the slash commands in the wrong directory and would have left them behind.
 - Suite 4 repurposed to assert BMAD coupling cannot silently return, including that a stale `--bmad` flag in a user's script produces a clean install rather than a crash.
 
