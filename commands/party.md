@@ -37,7 +37,7 @@ See `/archon-council` for the full debate format.
 
 1. User runs `/party sprint`
 2. Paimon checks which peers are online via `list_peers`
-3. For each agent in the party that isn't online: "Open a new terminal with `clp` for {agent}"
+3. For each agent in the party that isn't online: "Open a new terminal with `PEER_AGENT={agent} claude`"
 4. For each agent that IS online: dispatch the party role assignment
 5. Report the party status:
 
@@ -46,7 +46,7 @@ Party: Sprint Team
 ──────────────────
   Zhongli (backend)  — online, ready
   Xiao (QA)          — online, ready
-  Kaveh (frontend)   — needs terminal: run `clp` in a new tab
+  Kaveh (frontend)   — needs terminal: run `PEER_AGENT=kaveh claude`
 
 What should they build?
 ```

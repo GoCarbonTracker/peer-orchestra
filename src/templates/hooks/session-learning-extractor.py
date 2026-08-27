@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Session Learning Extractor — SessionEnd + PreCompact Hook
+Session Learning Extractor — SessionEnd Hook
 
 Parses session transcript JSONL to find peer interaction patterns
 (corrections, rework cycles, quality gate failures, accepted pushback)
@@ -343,7 +343,8 @@ def save_patterns(patterns: List[dict], session_id: str) -> int:
                     ),
                 )
                 conn.execute(
-                    "INSERT OR IGNORE INTO memories_fts(id, insight) VALUES (?, ?)",
+                    "INSERT OR IGNORE INTO memories_fts(rowid, id, insight) "
+                    "VALUES (last_insert_rowid(), ?, ?)",
                     (memory_id, p["insight"]),
                 )
                 saved += 1
