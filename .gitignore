@@ -17,3 +17,8 @@ graphify-out/
 
 # Internal planning artifacts (kept in git history, not in the repo)
 _bmad-output/
+
+# Credentials — never commit
+.npmrc
+.env.*
+!.env.example
