@@ -44,11 +44,28 @@ wrote. The value is in the interaction, not the individual.
 
 **A theme is not a rename.** Each persona's behaviour is derived from what that
 character is actually like — Zhongli deliberate and precedent-driven, Xiao the
-one who refuses to accept a clean surface. The fiction does real work: a reader
-who already knows the character absorbs the behaviour faster and the persona
-stays internally consistent, so it carries more per word than a bare role
-description. Marvel, DC, Naruto and LOTR themes are planned and work the same
-way — pick characters whose actual traits map onto the role the party needs.
+one who refuses to accept a clean surface. Marvel, DC, Naruto and LOTR themes
+are planned and work the same way: pick characters whose actual traits map onto
+the role the party needs.
+
+**Personality is compressed encoding of the discipline, not decoration.** The
+same instruction appears twice in every persona — once as character, once as
+rule. Albedo, line 8: "cost-conscious about compute resources and always
+estimates before running batch operations." Line 45, under Domain Rules:
+"estimate compute/API costs before batch runs." The rule covers the case it
+anticipated. The character covers the case it did not, because an agent that has
+absorbed *who it is* generalises to situations no rule enumerated. That is the
+argument for using real characters with real traits rather than invented ones —
+the reader already holds the model, so the encoding is dense.
+
+**Two kinds of file, and the difference is the point.** Domain agents execute:
+Abilities, Responsibilities, Key Files, Domain Rules, Session Start. Archons only
+argue a position: Philosophy, In Archon Council. Mavuika advocates shipping fast
+and bold over perfect; other archons hold the opposing line. The council is not a
+review step that reaches consensus — the disagreement *is* the mechanism, the
+party concept applied one level up. Genshin ships 4 archons; generic ships 0,
+which is a gap, since the debate positions (bold-shipper, precedent-keeper,
+risk-auditor, user-advocate) carry no theme content at all.
 
 **The generic theme is not a fallback for people who dislike anime.** It is the
 same party with the characterisation stated directly instead of borrowed, and it
