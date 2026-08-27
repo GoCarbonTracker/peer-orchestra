@@ -18,6 +18,7 @@ import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import List, Optional, Set
 
 # Agent memory: stored in .claude/agent-memory/ within the project
 PROJECT_ROOT = Path.cwd()
@@ -39,7 +40,7 @@ QUALITY_GATE_SIGNALS = ["FAIL", "PASS", "quality gate", "round 1", "round 2", "r
 PUSHBACK_SIGNALS = ["pushed back", "better approach", "should instead", "disagree", "preferred instead", "prefer a different"]
 
 
-def discover_agents() -> set[str]:
+def discover_agents() -> Set[str]:
     """Auto-discover agent names from .claude/rules/agent-*.md files."""
     rules_dir = PROJECT_ROOT / ".claude" / "rules"
     agents = set()
@@ -54,17 +55,17 @@ def discover_agents() -> set[str]:
 
 
 # Lazy-loaded agent set
-_known_agents: set[str] | None = None
+_known_agents: Optional[Set[str]] = None
 
 
-def get_known_agents() -> set[str]:
+def get_known_agents() -> Set[str]:
     global _known_agents
     if _known_agents is None:
         _known_agents = discover_agents()
     return _known_agents
 
 
-def find_transcript(session_id: str) -> Path | None:
+def find_transcript(session_id: str) -> Optional[Path]:
     """Find the JSONL transcript for this session."""
     if not session_id or session_id == "unknown":
         return None
@@ -80,7 +81,7 @@ def find_transcript(session_id: str) -> Path | None:
     return None
 
 
-def extract_peer_messages(transcript_path: Path) -> list[dict]:
+def extract_peer_messages(transcript_path: Path) -> List[dict]:
     """Extract peer messages from transcript JSONL.
 
     Peer messages appear in:
@@ -124,7 +125,7 @@ def extract_peer_messages(transcript_path: Path) -> list[dict]:
     return messages
 
 
-def parse_channel_message(raw: str) -> dict | None:
+def parse_channel_message(raw: str) -> Optional[dict]:
     """Parse a <channel source="claude-peers" ...> message."""
     from_id_match = re.search(r'from_id="([^"]+)"', raw)
     from_summary_match = re.search(r'from_summary="([^"]*)"', raw)
@@ -153,7 +154,7 @@ def parse_channel_message(raw: str) -> dict | None:
     }
 
 
-def detect_patterns(messages: list[dict]) -> list[dict]:
+def detect_patterns(messages: List[dict]) -> List[dict]:
     """Detect learnable patterns from peer messages."""
     patterns = []
 
@@ -184,7 +185,7 @@ def detect_patterns(messages: list[dict]) -> list[dict]:
     return deduplicate_patterns(patterns)
 
 
-def extract_correction_pattern(msg: dict) -> dict | None:
+def extract_correction_pattern(msg: dict) -> Optional[dict]:
     """Extract a correction pattern."""
     body = msg["body"]
     summary = body[:500]
@@ -205,7 +206,7 @@ def extract_correction_pattern(msg: dict) -> dict | None:
     }
 
 
-def extract_quality_gate_pattern(msg: dict) -> dict | None:
+def extract_quality_gate_pattern(msg: dict) -> Optional[dict]:
     """Extract quality gate patterns (FAIL -> PASS cycles)."""
     body = msg["body"]
     body_lower = body.lower()
@@ -227,7 +228,7 @@ def extract_quality_gate_pattern(msg: dict) -> dict | None:
     }
 
 
-def extract_pushback_pattern(msg: dict) -> dict | None:
+def extract_pushback_pattern(msg: dict) -> Optional[dict]:
     """Extract peer pushback that was accepted."""
     body = msg["body"]
     summary = body[:500]
@@ -243,13 +244,13 @@ def extract_pushback_pattern(msg: dict) -> dict | None:
     }
 
 
-def extract_agents_from_text(text: str) -> set[str]:
+def extract_agents_from_text(text: str) -> Set[str]:
     """Find agent names mentioned in text."""
     text_lower = text.lower()
     return {a for a in get_known_agents() if a in text_lower}
 
 
-def extract_agent_from_summary(summary: str) -> str | None:
+def extract_agent_from_summary(summary: str) -> Optional[str]:
     """Extract agent name from peer summary like 'Nahida: working on ...'."""
     if not summary:
         return None
@@ -257,7 +258,7 @@ def extract_agent_from_summary(summary: str) -> str | None:
     return first_word if first_word in get_known_agents() else None
 
 
-def deduplicate_patterns(patterns: list[dict]) -> list[dict]:
+def deduplicate_patterns(patterns: List[dict]) -> List[dict]:
     """Remove near-duplicate patterns."""
     seen = set()
     unique = []
@@ -291,7 +292,7 @@ def ensure_schema(conn: sqlite3.Connection):
     """)
 
 
-def save_patterns(patterns: list[dict], session_id: str) -> int:
+def save_patterns(patterns: List[dict], session_id: str) -> int:
     """Save patterns to agent-memory SQLite DBs."""
     if not patterns:
         return 0
@@ -386,4 +387,11 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except Exception as e:
+        print(json.dumps({
+            "hookEventName": "SessionEnd",
+            "message": f"Session learning extractor error (non-fatal): {e}",
+        }), file=sys.stderr)
+        sys.exit(0)

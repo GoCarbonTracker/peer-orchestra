@@ -1,37 +1,39 @@
 # Peer Orchestra
 
-**Multi-agent orchestration plugin for Claude Code.** Turn multiple Claude Code terminals into a coordinated engineering team — each with a distinct persona, domain expertise, and self-learning capabilities.
+**Your real AI team.** Turn Claude Code terminals into a coordinated engineering team with themed personas, structured dispatch, and agents that learn across sessions.
 
 ```bash
-claude plugin install peer-orchestra
+npx peer-orchestra init
 ```
 
 ---
 
-## What is this?
+## What Is This?
 
-Peer Orchestra is a **Claude Code plugin** that gives you a team of specialized AI agents:
+Peer Orchestra scaffolds a complete multi-agent orchestration framework into any Claude Code project. One command installs 12 themed agent personas, structured dispatch protocols, team collaboration patterns, and self-learning hooks.
 
-- **You** are the **Traveler** — you give direction and make decisions
-- **Paimon** is your **orchestrator** — she plans, dispatches, and coordinates
-- **11 domain agents** handle the actual work — backend, frontend, QA, data, research...
+- **You** give direction and make decisions
+- **Your orchestrator** plans, dispatches, and coordinates
+- **11 domain agents** handle the work — backend, frontend, QA, data, research, infrastructure...
 
-Each agent has a **personality** (from Genshin Impact characters), **domain expertise**, and **self-learning** (they improve across sessions).
+Each agent has a **personality**, **domain expertise**, and **persistent memory** — they improve across sessions.
 
-### Before Peer Orchestra
+### Before
+
 ```
-You: open 3 terminals, context-switch between all of them,
+You: open 4 terminals, context-switch between all of them,
      remember what each one is doing, manually coordinate
 ```
 
-### After Peer Orchestra
+### After
+
 ```
 You: "Build a user auth system with tests"
-Paimon dispatches:
-  → Zhongli (backend): designs the auth API
-  → Xiao (QA): writes test suite
-  → Kaveh (frontend): builds login UI
-  → All three coordinate via messages, you review the results
+Orchestrator dispatches:
+  -> Backend agent: designs the auth API
+  -> QA agent: writes test suite
+  -> Frontend agent: builds login UI
+  -> All three coordinate via messages, you review the results
 ```
 
 ---
@@ -39,55 +41,50 @@ Paimon dispatches:
 ## Quick Start
 
 ### Prerequisites
+
 - [Claude Code](https://claude.ai/code) installed
-- [claude-peers MCP server](https://github.com/louislva/claude-peers-mcp) installed
+- [claude-peers MCP](https://github.com/louislva/claude-peers-mcp) installed
 
 ### Install
 
 ```bash
-claude plugin install peer-orchestra
+npx peer-orchestra init
 ```
 
-### Shell Aliases (recommended)
+The interactive wizard asks for your orchestrator name and theme. Done in 30 seconds.
 
-Add to your `~/.zshrc` or `~/.bashrc`:
+**Non-interactive (CI/automation):**
 
 ```bash
-alias cl='claude --dangerously-skip-permissions'
-alias clp='claude --dangerously-skip-permissions --dangerously-load-development-channels server:claude-peers'
+npx peer-orchestra init --theme genshin --name Paimon --no-interactive
 ```
 
 ### Start Orchestrating
 
 ```bash
-# Terminal 1: You are the Traveler
-clp
+# Terminal 1: You are the orchestrator
+claude
 
 # Terminal 2: An agent joins your team
-clp
+claude
 
 # Terminal 3: Another agent joins
-clp
+claude
 
-# Tell Paimon what to build. She dispatches to agents.
+# Tell the orchestrator what to build. It dispatches to agents.
 ```
 
-### Plugin Commands
-
-| Command | What it does |
-|---------|-------------|
-| `/orchestra-status` | Show who's online, what they're working on |
-| `/dispatch <agent> <task>` | Send a structured task to an agent |
-| `/init` | Set up peer-orchestra in your project |
-| `/theme-switch` | Switch between agent theme packs |
+See [docs/quick-start.md](docs/quick-start.md) for the full walkthrough.
 
 ---
 
-## The Team (Genshin Theme)
+## The Team
+
+### Genshin Theme
 
 | Character | Role | Personality |
 |-----------|------|-------------|
-| **Paimon** | Orchestrator | Enthusiastic guide, coordinates everything |
+| **Paimon** (default) | Orchestrator | Enthusiastic guide, coordinates everything |
 | Nahida | KB & Data | Curious, precise, deeply knowledgeable |
 | Zhongli | Backend & Architecture | Methodical, thorough, unshakeable |
 | Albedo | Data Processing | Analytical, systematic, cost-conscious |
@@ -102,42 +99,32 @@ clp
 
 ### Generic Theme
 
-For teams that prefer straightforward role names without character flavor. Install with `/theme-switch generic`.
+For teams that prefer straightforward role names: Orchestrator, Backend Engineer, Frontend Engineer, QA Engineer, Data Specialist, Data Processor, DevOps Engineer, Technical Writer, Researcher, Auditor, Reporter, Tooling Engineer.
+
+```bash
+npx peer-orchestra init --theme generic
+```
 
 ### Coming Soon
 
-- **Naruto** — Shikamaru (strategy), Kakashi (security), Sakura (QA)...
-- **Marvel** — Nick Fury (orchestrator), Tony Stark (architect), Jarvis (infra)...
-- **DC** — Batman (orchestrator), Oracle (intelligence), Cyborg (infra)...
-
-**Want to create a theme?** See [Contributing](#contributing).
+Community themes: Naruto, Marvel, DC, LOTR, and custom. [Create your own](docs/theme-creation-guide.md).
 
 ---
 
 ## Architecture
 
 ```
-peer-orchestra/                    (Claude Code Plugin)
-├── .claude-plugin/
-│   └── plugin.json                # Plugin manifest
-├── agents/                        # 12 subagent personas
-│   ├── paimon.md                  # Orchestrator (Opus)
-│   ├── nahida.md                  # KB & Data (Sonnet)
-│   ├── zhongli.md                 # Backend (Sonnet)
-│   └── ...                        # 9 more agents
-├── skills/
-│   ├── init/SKILL.md              # Project initialization
-│   └── theme-switch/SKILL.md      # Switch theme packs
-├── commands/
-│   ├── orchestra-status.md        # /orchestra-status
-│   └── dispatch.md                # /dispatch <agent> <task>
-├── hooks/
-│   └── hooks.json                 # Agent router, memory hooks
-├── scripts/                       # Hook implementations
+peer-orchestra/
+├── src/index.js                 # CLI entry point (init wizard)
+├── src/templates/               # Files scaffolded into your project
+│   ├── hooks/                   # Self-learning hook scripts
+│   ├── rules/                   # Dispatch protocol + common rules
+│   └── CLAUDE.md.template       # Orchestrator instructions
 ├── themes/
-│   ├── genshin/agents/            # Genshin persona files
-│   └── generic/agents/            # Role-based alternatives
-└── src/templates/                 # Rule templates (dispatch, teams)
+│   ├── genshin/agents/          # 12 Genshin persona files
+│   └── generic/agents/          # 12 role-based alternatives
+├── commands/                    # Slash command docs
+└── tests/                       # Scaffold smoke tests
 ```
 
 ### Five Layers
@@ -145,66 +132,87 @@ peer-orchestra/                    (Claude Code Plugin)
 | Layer | Purpose | Component |
 |-------|---------|-----------|
 | **Messaging** | Agent-to-agent communication | [claude-peers](https://github.com/louislva/claude-peers-mcp) |
-| **Personas** | Character personality + domain expertise | `agents/*.md` |
+| **Personas** | Character personality + domain expertise | `themes/*/agents/` |
 | **Dispatch** | Structured task routing + team patterns | `src/templates/rules/` |
-| **Workflow** | Epic → Story → Implement discipline | BMAD engine (optional) |
+| **Workflow** | Epic -> Story -> Implement discipline | BMAD engine (optional) |
 | **Evolution** | Agents grow instincts across sessions | [homunculus](https://github.com/humanplane/homunculus) |
+
+### What Gets Installed
+
+After `npx peer-orchestra init`, your project gets:
+
+```
+.claude/
+  rules/          # 12 agent personas + dispatch protocol
+  hooks/          # Self-learning hooks (5 scripts)
+  agent-memory/   # Per-agent SQLite DBs (gitignored)
+  settings.json   # Hook configuration
+CLAUDE.md         # Orchestrator instructions (merged)
+```
+
+---
+
+## Commands
+
+| Command | What it does |
+|---------|-------------|
+| `/dispatch <agent> <task>` | Send a structured task to an agent |
+| `/orchestra-status` | Show who's online, what they're working on |
+| `/party <name>` | Spawn a pre-configured team |
+| `/archon-council <topic>` | Strategic debate (Genshin theme) |
 
 ### Dispatch Protocol
 
-Paimon sends structured tasks to agents:
+The orchestrator sends typed messages with priority levels:
 
 ```
 [dispatch] P1-normal
 
 TASK: Create REST API endpoints for user authentication
-
-CONTEXT: We're using Express + PostgreSQL. JWT for tokens.
-         No existing auth code — greenfield.
-
+CONTEXT: Express + PostgreSQL. JWT for tokens. Greenfield.
 OUTPUT: src/routes/auth.ts
-
 RESPOND: File path when done + test results
 ```
 
 ### Team Patterns
 
-Agents work in pairs for tasks that need iteration:
-
 | Pattern | Example | How |
 |---------|---------|-----|
-| **TDD Loop** | Builder + Xiao | Builder writes → Xiao tests → iterate |
-| **Build + Validate** | Builder + Nahida | Builder proposes → Nahida validates data |
-| **Research + Docs** | Yelan + Furina | Yelan researches → Furina structures |
-| **Implement + Review** | Builder + Neuvillette | Builder implements → Neuvillette audits |
-
-### Self-Learning + Evolution
-
-**Lessons (immediate):** You correct an agent → it saves the lesson → next session it remembers.
-
-**Homunculus (deep):** The [homunculus](https://github.com/humanplane/homunculus) plugin observes sessions, extracts instincts, clusters patterns, and evolves agent behavior automatically. Agents that genuinely improve the more you use them.
+| **TDD Loop** | Builder + QA | Builder writes -> QA tests -> iterate |
+| **Build + Validate** | Builder + Data | Builder proposes -> Data validates |
+| **Research + Docs** | Researcher + Writer | Research findings -> structured docs |
+| **Implement + Review** | Builder + Auditor | Builder implements -> Auditor reviews |
 
 ---
 
-## Works With Existing Projects
+## Self-Learning + Evolution
 
-Peer Orchestra is non-invasive. Use `/init` in any existing codebase — nothing breaks:
+**Lessons (immediate):** Correct an agent -> it saves the lesson -> next session it remembers.
 
-- **Any language/framework** — agents adapt to your stack
-- **Existing Claude Code config** — plugin adds alongside, doesn't replace
-- **Solo or team** — use 1 agent or all 12
+**How it works:**
+1. Session learning extractor parses transcripts for corrections, quality gate outcomes, and pushback
+2. Patterns saved to per-agent SQLite databases (`.claude/agent-memory/`)
+3. At session start, each agent recalls its past lessons automatically
+
+**Homunculus (deep):** The [homunculus](https://github.com/humanplane/homunculus) evolution engine observes sessions, extracts instincts, clusters patterns, and evolves agent behavior. Agents genuinely improve the more you use them.
 
 ---
 
-## Customization
+## CLI Options
 
-### Add Project-Specific Context
+```bash
+npx peer-orchestra init [options]
 
-After installing, tell your agents about your project. They learn through conversation and save lessons automatically.
-
-### Create Your Own Theme
-
-Add a directory under `themes/your-theme/agents/` with agent markdown files following the frontmatter format. Each needs: name, description, model, personality, abilities, domain rules, and self-learning sections.
+Options:
+  --theme <name>      Theme: genshin (default), generic
+  --name <name>       Orchestrator persona name
+  --dir <path>        Target directory (default: .)
+  --bmad              Enable BMAD workflow integration
+  --no-interactive    Skip prompts (requires --theme and --name)
+  --dry-run           Preview what would be installed
+  --force             Overwrite existing files
+  --version, -v       Print version
+```
 
 ---
 
@@ -212,25 +220,22 @@ Add a directory under `themes/your-theme/agents/` with agent markdown files foll
 
 Contributions welcome! Especially:
 
-- **New themes** — map your favorite franchise characters to engineering roles
-- **Better hooks** — smarter routing, better memory
-- **New agent roles** — DevRel, ML Engineer, Mobile Dev...
+- **New themes** — map your favorite franchise characters to engineering roles. See [theme creation guide](docs/theme-creation-guide.md).
+- **Better hooks** — smarter routing, better memory recall
 - **Documentation** — guides, tutorials, examples
 
 ---
 
 ## Credits
 
-- **[claude-peers](https://github.com/louislva/claude-peers-mcp)** by [Louis](https://github.com/louislva) — the MCP server that makes multi-terminal agent communication possible
-- **[homunculus](https://github.com/humanplane/homunculus)** — the evolution engine that makes agents learn and grow
-- **[BMAD Method](https://github.com/bmadcode/BMAD-METHOD)** — workflow discipline engine
-- **[Claude Code](https://claude.ai/code)** by Anthropic — the AI coding assistant powering each agent
+- **[claude-peers](https://github.com/louislva/claude-peers-mcp)** by Louis — multi-terminal agent communication
+- **[homunculus](https://github.com/humanplane/homunculus)** — agent evolution engine
+- **[BMAD Method](https://github.com/bmadcode/BMAD-METHOD)** — workflow discipline
+- **[Claude Code](https://claude.ai/code)** by Anthropic — the AI powering each agent
 
 ## Disclaimer
 
-Character names from Genshin Impact, Naruto, Marvel, DC, and other franchises belong to their respective owners. Used as personality references for AI agent personas only. Not affiliated with or endorsed by any franchise owner.
-
----
+Character names from Genshin Impact and other franchises belong to their respective owners. Used as personality references for AI agent personas only.
 
 ## License
 

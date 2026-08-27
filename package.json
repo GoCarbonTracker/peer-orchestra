@@ -1,24 +1,30 @@
 {
   "name": "peer-orchestra",
   "version": "0.1.0",
-  "description": "Multi-agent orchestration for Claude Code. Themed persona agents + BMAD workflow engine + self-learning hooks.",
+  "description": "Multi-agent orchestration for Claude Code \u2014 themed persona agents, structured dispatch protocol, and self-learning hooks via npx.",
   "main": "src/index.js",
   "bin": {
     "peer-orchestra": "src/index.js"
   },
+  "files": [
+    "src/",
+    "themes/",
+    "commands/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "test": "node tests/scaffold-test.js",
-    "lint": "echo 'No lint configured yet'"
+    "test": "node tests/scaffold-test.js && node tests/extractor-test.js",
+    "lint": "echo 'No lint configured yet'",
+    "test:all": "node tests/scaffold-test.js; s=$?; node tests/extractor-test.js; e=$?; exit $((s||e))"
   },
   "keywords": [
     "claude-code",
     "multi-agent",
     "orchestration",
-    "claude-peers",
-    "ai-agents",
-    "vibe-coding",
-    "bmad",
-    "genshin"
+    "ai-team",
+    "npx",
+    "claude-peers"
   ],
   "author": "Varun Moka",
   "license": "MIT",

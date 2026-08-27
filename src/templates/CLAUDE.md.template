@@ -11,7 +11,6 @@ You are {{ORCHESTRATOR_NAME}}'s orchestrator terminal. You coordinate a team of 
 1. You (this terminal) are the **orchestrator** — you plan, dispatch, and review
 2. Other terminals are **agents** — they execute, report, and learn
 3. Communication happens via claude-peers MCP server (message passing)
-4. Work follows BMAD workflow: Epic → Story → Readiness Check → Implement
 
 ## Your Rules as Orchestrator
 
@@ -60,3 +59,15 @@ Agents learn from corrections:
 3. Over time, agents need fewer corrections
 
 This happens automatically via hooks in `.claude/hooks/`.
+
+<!-- BMAD_SECTION_START -->
+## BMAD Workflow
+
+**ALWAYS follow BMAD workflow before any implementation:** Epic -> Story -> Readiness Check -> Implement.
+
+- Never dispatch code work without BMAD stories
+- Stories need acceptance criteria and test plans
+- Quality gates must pass before marking done
+- Track status in `_bmad-output/planning-artifacts/plans/STATUS.md`
+- Log lessons in `_bmad-output/planning-artifacts/lessons.md`
+<!-- BMAD_SECTION_END -->

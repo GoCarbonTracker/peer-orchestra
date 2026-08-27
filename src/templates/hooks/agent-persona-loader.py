@@ -1,39 +1,55 @@
 #!/usr/bin/env python3
-"""Loads agent persona on session start based on environment or .peer-identity file."""
+"""Loads agent persona on session start based on environment or .peer-identity file — SessionStart Hook"""
 
+import json
 import os
 import sys
+from pathlib import Path
 
 
-def get_agent_identity():
+PROJECT_ROOT = Path.cwd()
+
+
+def get_agent_identity() -> str:
     """Determine which agent this terminal is. Priority: env var > file > default."""
-    # 1. Environment variable
     agent = os.environ.get("PEER_AGENT")
     if agent:
         return agent
 
-    # 2. .peer-identity file in project root
-    identity_file = os.path.join(os.getcwd(), ".peer-identity")
-    if os.path.exists(identity_file):
-        with open(identity_file) as f:
-            return f.read().strip()
+    identity_file = PROJECT_ROOT / ".peer-identity"
+    if identity_file.exists():
+        return identity_file.read_text().strip()
 
-    # 3. Default: orchestrator
     return "orchestrator"
 
 
-def main():
-    agent = get_agent_identity()
-    rules_dir = os.path.join(os.getcwd(), ".claude", "rules")
-    agent_file = os.path.join(rules_dir, f"agent-{agent.lower()}.md")
+def main() -> int:
+    try:
+        input_data = json.load(sys.stdin)
+    except (json.JSONDecodeError, EOFError):
+        input_data = {}
 
-    if os.path.exists(agent_file):
-        print(f"Agent persona loaded: {agent}")
-        print(f"Rules: .claude/rules/agent-{agent.lower()}.md")
+    agent = get_agent_identity()
+    agent_file = PROJECT_ROOT / ".claude" / "rules" / f"agent-{agent.lower()}.md"
+
+    if agent_file.exists():
+        message = f"Agent persona loaded: {agent} (rules: .claude/rules/agent-{agent.lower()}.md)"
     else:
-        print(f"No persona file found for '{agent}' at {agent_file}")
-        print("Running as generic agent. Create the rules file to customize behavior.")
+        message = f"No persona file found for '{agent}'. Running as generic agent."
+
+    print(json.dumps({
+        "hookEventName": "SessionStart",
+        "message": message,
+    }))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        sys.exit(main())
+    except Exception as e:
+        print(json.dumps({
+            "hookEventName": "SessionStart",
+            "message": f"Agent persona loader error (non-fatal): {e}",
+        }), file=sys.stderr)
+        sys.exit(0)

@@ -1,6 +1,14 @@
+# Internal development
 tests/
-docs/
+docs/research/
+tools/
+_bmad-output/
 .claude/
+.github/
+graphify-out/
+bin/
+
+# System files
 .git/
 .DS_Store
 *.log
