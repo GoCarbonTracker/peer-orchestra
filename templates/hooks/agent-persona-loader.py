@@ -10,6 +10,10 @@ from pathlib import Path
 
 PROJECT_ROOT = Path.cwd()
 
+# Personas are typically 2-4KB. Cap generously so a pathological file cannot
+# flood the session context, while leaving normal personas untouched.
+MAX_PERSONA_CHARS = 20000
+
 
 def sanitize_agent_name(agent: str) -> str:
     """Strip anything but safe filename chars so `agent` can't escape the rules dir."""
@@ -40,16 +44,40 @@ def main() -> int:
         input_data = {}
 
     agent = get_agent_identity()
+    rel_path = f".claude/rules/agent-{agent.lower()}.md"
     agent_file = PROJECT_ROOT / ".claude" / "rules" / f"agent-{agent.lower()}.md"
 
-    if agent_file.exists():
-        message = f"Agent persona loaded: {agent} (rules: .claude/rules/agent-{agent.lower()}.md)"
+    if not agent_file.exists():
+        # No persona for this identity — say so, but don't fail the session.
+        context = (
+            f"No persona file found for '{agent}' (looked for {rel_path}). "
+            "Running without a persona."
+        )
     else:
-        message = f"No persona file found for '{agent}'. Running as generic agent."
+        # Inject the persona ITSELF, not its filename. .claude/rules/ is not a
+        # directory Claude Code auto-loads, so naming the file here would leave
+        # the persona unread unless something later chose to open it.
+        try:
+            persona = agent_file.read_text(errors="replace").strip()
+        except OSError as exc:
+            context = f"Could not read {rel_path}: {exc}"
+        else:
+            if len(persona) > MAX_PERSONA_CHARS:
+                persona = (
+                    persona[:MAX_PERSONA_CHARS]
+                    + f"\n\n[persona truncated at {MAX_PERSONA_CHARS} characters — "
+                    f"see {rel_path} for the rest]"
+                )
+            context = (
+                f"You are {agent}. The following persona is loaded from {rel_path} "
+                f"and applies for this session.\n\n{persona}"
+            )
 
     print(json.dumps({
-        "hookEventName": "SessionStart",
-        "message": message,
+        "hookSpecificOutput": {
+            "hookEventName": "SessionStart",
+            "additionalContext": context,
+        }
     }))
     return 0
 

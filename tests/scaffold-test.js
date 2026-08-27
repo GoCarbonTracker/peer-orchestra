@@ -375,6 +375,55 @@ assert(rtAfter[1] === rtBefore[1], 'CLAUDE.md restored exactly');
 assert(rtAfter[2] === rtBefore[2], '.gitignore restored exactly');
 
 // ============================================================
+// TEST SUITE 7: Hooks Reach The Model
+// ============================================================
+console.log(`\n${'='.repeat(60)}`);
+console.log('TEST SUITE 7: Hooks Reach The Model');
+console.log(`${'='.repeat(60)}\n`);
+
+// Claude Code reads hookSpecificOutput.additionalContext. A bare
+// {"message": ...} payload is silently discarded, which previously made
+// the persona and memory hooks inert. These assertions pin the contract.
+const hookDir = path.join(BASE_DIR, 'hook-output-test');
+fs.mkdirSync(hookDir, { recursive: true });
+runInit(hookDir, '--theme genshin --name Paimon');
+
+function runHook(script, stdin, env = {}) {
+  return execSync(`python3 "${path.join(hookDir, '.claude/hooks', script)}"`, {
+    input: stdin,
+    cwd: hookDir,
+    env: { ...process.env, ...env },
+    encoding: 'utf-8',
+    timeout: 15000,
+  });
+}
+
+let personaOut = {};
+try {
+  personaOut = JSON.parse(runHook('agent-persona-loader.py', '{}', { PEER_AGENT: 'zhongli' }));
+} catch (e) {
+  personaOut = {};
+}
+const personaCtx = personaOut.hookSpecificOutput?.additionalContext || '';
+assert(!!personaOut.hookSpecificOutput, 'persona-loader uses hookSpecificOutput envelope');
+assert(personaOut.hookSpecificOutput?.hookEventName === 'SessionStart', 'persona-loader declares SessionStart');
+
+// The point of the hook: the persona CONTENT must be injected, not its filename.
+const personaFile = fs.readFileSync(path.join(hookDir, '.claude/rules/agent-zhongli.md'), 'utf-8');
+const personaBody = personaFile.trim().split('\n').slice(1, 6).join('\n');
+assert(personaCtx.length > 1000, `persona content injected, not just a filename (got ${personaCtx.length} chars)`);
+assert(personaCtx.includes(personaBody.split('\n')[1] || 'Role'), 'injected context contains the real persona body');
+
+// The router must read the key Claude Code actually sends: user_prompt.
+const routerOut = runHook(
+  'agent-router.py',
+  JSON.stringify({ hook_event_name: 'UserPromptSubmit', user_prompt: 'write tests for the parser' })
+);
+assert(routerOut.trim().length > 0, 'router responds to a user_prompt payload');
+const routerJson = JSON.parse(routerOut);
+assert(!!routerJson.hookSpecificOutput, 'router uses hookSpecificOutput envelope');
+
+// ============================================================
 // Cleanup & Summary
 // ============================================================
 fs.rmSync(BASE_DIR, { recursive: true, force: true });
