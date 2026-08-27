@@ -424,6 +424,60 @@ const routerJson = JSON.parse(routerOut);
 assert(!!routerJson.hookSpecificOutput, 'router uses hookSpecificOutput envelope');
 
 // ============================================================
+// TEST SUITE 8: Theme Parity
+// ============================================================
+console.log(`\n${'='.repeat(60)}`);
+console.log('TEST SUITE 8: Theme Parity');
+console.log(`${'='.repeat(60)}\n`);
+
+// The two themes are meant to differ in flavour, not substance. Generic
+// personas once averaged 34 lines against genshin's 77, missing Session
+// Start in 11 of 12 files — a user picking --theme generic got a weaker
+// framework. Nothing asserted parity, so the drift went unnoticed.
+const THEMES_ROOT = path.join(__dirname, '..', 'themes');
+const REQUIRED_SECTIONS = ['## Session Start', '## Abilities', '## Domain Rules'];
+
+for (const theme of ['generic', 'genshin']) {
+  const agentDir = path.join(THEMES_ROOT, theme, 'agents');
+  // The orchestrator coordinates rather than executes — it owns no files and
+  // has no domain, so it legitimately carries Role/Rules instead of
+  // Abilities/Domain Rules. Compare the domain personas only.
+  const files = fs
+    .readdirSync(agentDir)
+    .filter((f) => f.endsWith('.md') && f !== 'agent-orchestrator.md');
+  for (const section of REQUIRED_SECTIONS) {
+    const missing = files.filter(
+      (f) => !fs.readFileSync(path.join(agentDir, f), 'utf-8').includes(section)
+    );
+    assert(missing.length === 0, `${theme}: every persona has "${section}"${missing.length ? ` (missing: ${missing.join(', ')})` : ''}`);
+  }
+}
+
+// Substance parity: neither theme should be a hollow copy of the other.
+function avgLines(theme) {
+  const dir = path.join(THEMES_ROOT, theme, 'agents');
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith('.md'));
+  const total = files.reduce(
+    (n, f) => n + fs.readFileSync(path.join(dir, f), 'utf-8').split('\n').length, 0
+  );
+  return total / files.length;
+}
+const genericAvg = avgLines('generic');
+const genshinAvg = avgLines('genshin');
+const ratio = genericAvg / genshinAvg;
+assert(
+  ratio > 0.75,
+  `generic theme has comparable substance to genshin (${genericAvg.toFixed(0)} vs ${genshinAvg.toFixed(0)} avg lines, ratio ${ratio.toFixed(2)})`
+);
+
+// Fictional flavour must not leak into the generic theme.
+const genericLeaks = findLeaks(path.join(THEMES_ROOT, 'generic'), [
+  'Genshin', 'Zhongli', 'Nahida', 'Albedo', 'Furina', 'Kaveh',
+  'Alhaitham', 'Xiao', 'Yelan', 'Neuvillette', 'Ganyu', 'Paimon', 'Archon',
+]);
+assert(genericLeaks.length === 0, `no fictional character names in the generic theme${genericLeaks.length ? ` (found: ${genericLeaks.join(', ')})` : ''}`);
+
+// ============================================================
 // Cleanup & Summary
 // ============================================================
 fs.rmSync(BASE_DIR, { recursive: true, force: true });
