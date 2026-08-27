@@ -3,6 +3,7 @@
 
 import json
 import os
+import re
 import sqlite3
 import sys
 from pathlib import Path
@@ -13,14 +14,23 @@ PROJECT_ROOT = Path.cwd()
 AGENT_MEMORY_DIR = PROJECT_ROOT / ".claude" / "agent-memory"
 
 
+def sanitize_agent_name(agent: str) -> str:
+    """Strip anything but safe filename chars so `agent` can't escape AGENT_MEMORY_DIR."""
+    cleaned = re.sub(r"[^A-Za-z0-9_-]", "", agent)[:64]
+    return cleaned or "orchestrator"
+
+
 def get_agent_name() -> str:
     """Determine agent identity. Priority: env var > .peer-identity file > default."""
     agent = os.environ.get("PEER_AGENT")
     if agent:
-        return agent.lower()
+        return sanitize_agent_name(agent.lower())
     identity_file = PROJECT_ROOT / ".peer-identity"
     if identity_file.exists():
-        return identity_file.read_text().strip().lower()
+        lines = identity_file.read_text().splitlines()
+        first_line = lines[0].strip() if lines else ""
+        if first_line:
+            return sanitize_agent_name(first_line.lower())
     return "orchestrator"
 
 

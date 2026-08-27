@@ -24,4 +24,4 @@ RESPOND: Confirm when done with file path and verification results.
 4. Send via `send_message` to the target peer
 5. Confirm to the user: "Dispatched to {agent}: {task summary}"
 
-If the target agent isn't online, tell the user to open a new terminal with `clp`.
+If the target agent isn't online, tell the user to open a new terminal with `PEER_AGENT={agent} claude`.

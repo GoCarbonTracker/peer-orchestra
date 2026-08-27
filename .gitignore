@@ -6,6 +6,10 @@ node_modules/
 .claude/lessons.md
 .claude/
 
+# Python
+__pycache__/
+*.pyc
+
 # Build artifacts
 graphify-out/
 .graphify_cached.json

@@ -11,6 +11,9 @@ from typing import Dict, List
 
 PROJECT_ROOT = Path.cwd()
 
+# Connector words that add noise to auto-extracted keywords
+STOPWORDS = {"and", "the", "for", "with", "from", "into", "this", "that", "via"}
+
 # Default keyword routes — used when agent files lack ## Abilities sections
 DEFAULT_ROUTES: Dict[str, List[str]] = {
     "backend": ["API", "database", "backend", "performance", "system design", "architecture"],
@@ -48,6 +51,13 @@ def discover_agents() -> Dict[str, dict]:
 
         try:
             content = f.read_text(errors="replace")
+
+            # Archon personas (## In Archon Council) are for /archon-council debate,
+            # not task routing — skip explicitly rather than silently dropping them
+            # for lacking an ## Abilities section.
+            if "## In Archon Council" in content:
+                continue
+
             # Extract domain from **Domain:** line
             domain_match = re.search(r"\*\*Domain:\*\*\s*(.+?)(?:\n|$)", content)
             if domain_match:
@@ -59,9 +69,16 @@ def discover_agents() -> Dict[str, dict]:
                 for line in abilities_match.group(1).split("\n"):
                     line = line.strip().lstrip("-* ")
                     if line:
-                        # Use first few significant words as keywords
-                        words = [w for w in line.split()[:4] if len(w) > 2]
-                        keywords.extend(words[:2])
+                        # Normalize (lowercase, strip punctuation) and dedupe before
+                        # extending — raw words with mixed case/punctuation missed
+                        # matches, and duplicates inflated scores.
+                        words = {
+                            re.sub(r"[^\w-]", "", w).lower()
+                            for w in line.split()[:4]
+                            if len(w) > 2
+                        }
+                        words -= STOPWORDS
+                        keywords.extend(w for w in words if w and w not in keywords)
 
             # Fall back to DEFAULT_ROUTES if no abilities found
             if not keywords:

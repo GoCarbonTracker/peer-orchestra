@@ -41,7 +41,6 @@ If your script prints nothing, no message is injected — the hook runs silently
 |-------|--------------|-------------|
 | **SessionStart** | When a Claude Code session begins | Load agent identity, recall past learnings, set up context |
 | **SessionEnd** | When a session closes | Save learnings, export memory, cleanup |
-| **PreCompact** | Before context gets compressed (long sessions) | Save work-in-progress, extract learnings before they're lost |
 | **UserPromptSubmit** | After the user types a message, before Claude processes it | Route prompts to agents, add context, validate input |
 | **PreToolUse** | Before Claude calls a tool (Read, Bash, etc.) | Security scanning, permission checks, logging |
 | **PostToolUse** | After a tool call completes | Audit logging, result validation, notifications |
@@ -77,31 +76,36 @@ The **stdin JSON** varies by event. Key fields:
 
 Hooks are registered in `.claude/settings.json` under the `hooks` key. Each event maps to an array of hook groups, where each group has a `matcher` (regex filter, empty = match everything) and a list of hook commands:
 
+This is what Peer Orchestra actually generates (or merges into your existing `settings.json`):
+
 ```json
 {
   "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .claude/hooks/agent-persona-loader.py"
-          },
-          {
-            "type": "command",
-            "command": "python3 .claude/hooks/session-start-peer-memory.py"
-          }
-        ]
-      }
-    ],
     "UserPromptSubmit": [
       {
         "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/agent-router.py \"$PROMPT\""
+            "command": "python3 .claude/hooks/agent-router.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/agent-persona-loader.py",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/session-start-peer-memory.py",
+            "timeout": 10
           }
         ]
       }
@@ -112,25 +116,20 @@ Hooks are registered in `.claude/settings.json` under the `hooks` key. Each even
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/session-learning-extractor.py"
-          }
-        ]
-      }
-    ],
-    "PreCompact": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .claude/hooks/session-learning-extractor.py"
+            "command": "python3 .claude/hooks/session-learning-extractor.py",
+            "timeout": 10
           }
         ]
       }
     ]
+  },
+  "plugins": {
+    "homunculus": true
   }
 }
 ```
+
+Note there's no `PreCompact` entry — see "SessionEnd hooks are unreliable for peers" below for why that isn't there and what it means in practice. Also note the hook commands take no arguments (`agent-router.py` used to be wired with `"$PROMPT"` interpolated onto the command line — it reads the event data as JSON on stdin instead, which is what Claude Code actually sends).
 
 Key points:
 - Hooks run **in order** within a group. If you have 2 hooks in the same group, the first finishes before the second starts.
@@ -144,29 +143,36 @@ Key points:
 
 ### 1. Agent Persona Loader
 
-**File:** `agent-persona-loader.py` (55 lines)
+**File:** `agent-persona-loader.py`
 **Event:** SessionStart
 **Purpose:** Tells Claude which agent persona to load when a terminal opens.
 
 **How it works:**
 
 ```python
+def sanitize_agent_name(agent: str) -> str:
+    # Strip anything but safe filename chars so `agent` can't escape the rules dir
+    cleaned = re.sub(r"[^A-Za-z0-9_-]", "", agent)[:64]
+    return cleaned or "orchestrator"
+
 def get_agent_identity() -> str:
     # Priority 1: PEER_AGENT environment variable
     agent = os.environ.get("PEER_AGENT")
     if agent:
-        return agent
+        return sanitize_agent_name(agent)
 
-    # Priority 2: .peer-identity file in project root
+    # Priority 2: first line of .peer-identity file in project root
     identity_file = PROJECT_ROOT / ".peer-identity"
     if identity_file.exists():
-        return identity_file.read_text().strip()
+        first_line = identity_file.read_text().splitlines()[0].strip()
+        if first_line:
+            return sanitize_agent_name(first_line)
 
     # Priority 3: default to orchestrator
     return "orchestrator"
 ```
 
-The hook checks three places for the agent's identity (env var, file, default), then confirms whether the matching rules file exists at `.claude/rules/agent-{name}.md`. Its output message tells Claude "you are agent X" — which primes it to follow that agent's rules.
+The hook checks three places for the agent's identity (env var, file, default), sanitizes whatever it finds down to safe filename characters (this is what stops `PEER_AGENT` or `.peer-identity` from being used to read a file outside `.claude/rules/`), then confirms whether the matching rules file exists at `.claude/rules/agent-{name}.md`. Its output message tells Claude "you are agent X" — which primes it to follow that agent's rules.
 
 **Why it's useful:** In a multi-agent setup, you open multiple terminals. Each one needs to know which agent it is. Setting `PEER_AGENT=qa-engineer` before launching Claude Code makes that terminal automatically adopt the QA engineer persona.
 
@@ -186,14 +192,14 @@ PEER_AGENT=backend-engineer claude
 
 ### 2. Session Memory Recall
 
-**File:** `session-start-peer-memory.py` (83 lines)
+**File:** `session-start-peer-memory.py`
 **Event:** SessionStart
 **Purpose:** Recalls past learnings for this specific agent from a SQLite database.
 
 **How it works:**
 
 ```python
-def recall_memories(agent: str, limit: int = 10) -> list[str]:
+def recall_memories(agent: str, limit: int = 10) -> List[str]:
     db_path = AGENT_MEMORY_DIR / f"{agent}.db"
     if not db_path.exists():
         return []
@@ -227,7 +233,7 @@ Each agent has its own SQLite database at `.claude/agent-memory/{agent}.db`. Thi
 
 ### 3. Agent Router
 
-**File:** `agent-router.py` (140 lines)
+**File:** `agent-router.py`
 **Event:** UserPromptSubmit
 **Purpose:** Suggests which agent should handle a task based on keyword matching against the user's prompt.
 
@@ -251,7 +257,7 @@ DEFAULT_ROUTES = {
 3. **Matching:** When you type a prompt, every keyword is checked against the prompt text. Agents are ranked by number of matching keywords.
 
 ```python
-def route_prompt(prompt: str, agents: dict) -> list[dict]:
+def route_prompt(prompt: str, agents: Dict[str, dict]) -> List[dict]:
     prompt_lower = prompt.lower()
     matches = []
     for agent, info in agents.items():
@@ -279,8 +285,8 @@ Matching keywords: "test"
 
 ### 4. Session Learning Extractor
 
-**File:** `session-learning-extractor.py` (390 lines)
-**Event:** SessionEnd + PreCompact
+**File:** `session-learning-extractor.py`
+**Event:** SessionEnd
 **Purpose:** The crown jewel. Parses the session transcript to find learnable moments — corrections, quality gate results, and peer pushback — then saves them to per-agent SQLite databases.
 
 **How it works (simplified):**
@@ -290,7 +296,7 @@ Matching keywords: "test"
 **Step 2 — Extract peer messages.** It scans the JSONL for messages containing `<channel source="claude-peers">` — these are messages sent between agents via the claude-peers MCP server.
 
 ```python
-def extract_peer_messages(transcript_path: Path) -> list[dict]:
+def extract_peer_messages(transcript_path: Path) -> List[dict]:
     messages = []
     with open(transcript_path) as f:
         for line in f:
@@ -316,7 +322,7 @@ def extract_peer_messages(transcript_path: Path) -> list[dict]:
 **Step 4 — Save to per-agent SQLite.** Each detected pattern is saved to the relevant agent's database. Idempotency is enforced by checking `(source_session, topic, agent)` — re-running the extractor on the same session produces no duplicates.
 
 ```python
-def save_patterns(patterns: list[dict], session_id: str) -> int:
+def save_patterns(patterns: List[dict], session_id: str) -> int:
     for agent in all_agents:
         db_path = AGENT_MEMORY_DIR / f"{agent}.db"
         conn = sqlite3.connect(str(db_path))
@@ -338,7 +344,7 @@ def save_patterns(patterns: list[dict], session_id: str) -> int:
 
 **Why it's useful:** This closes the learning loop. Without this hook, corrections are lost when the session ends. With it, every correction, failed quality gate, and successful pushback becomes a permanent lesson that the agent recalls in future sessions via hook #2 (Session Memory Recall).
 
-**Why it fires on both SessionEnd AND PreCompact:** Long sessions trigger context compaction (Claude compresses old messages to make room). If a correction happened early in the session, it could be lost during compaction. By also firing on PreCompact, the extractor captures learnings before they're compressed away.
+**Why it only fires on SessionEnd, not PreCompact:** An earlier version also registered on PreCompact, on the theory that long sessions trigger context compaction and a correction made early in the session could be lost when old messages are compressed. In practice PreCompact fires repeatedly within a single session, and the extractor re-reads the whole transcript from byte zero every time with no offset tracking — on a long session that's the transcript getting re-parsed over and over for the same, already-saved patterns. The registration was removed; see "SessionEnd hooks are unreliable for peers" below for the real gap this leaves and why it wasn't fixed by keeping PreCompact.
 
 ---
 
@@ -451,7 +457,7 @@ If your hook has nothing to report (no memories found, no routing match), just `
 
 ### SessionEnd hooks are unreliable for peers
 
-In multi-agent setups, agent terminals often sit idle after finishing their task. The SessionEnd hook may never fire if the user closes the terminal without properly ending the session. This is why Peer Orchestra's learning extractor also fires on PreCompact — it's a safety net.
+In multi-agent setups, agent terminals often sit idle after finishing their task. The SessionEnd hook may never fire if the user closes the terminal without properly ending the session. Peer Orchestra's learning extractor only registers on SessionEnd (an earlier version also fired on PreCompact as a safety net — removed because it re-scanned the entire transcript on every compaction with no offset tracking, see above). There is currently no fallback for a terminal that gets closed uncleanly; a lesson from that session can be lost. If this matters for your workflow, end agent sessions deliberately (`/exit` or closing normally) rather than killing the terminal.
 
 ### Don't do heavy work in UserPromptSubmit
 

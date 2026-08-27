@@ -3,6 +3,7 @@
 
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -10,15 +11,24 @@ from pathlib import Path
 PROJECT_ROOT = Path.cwd()
 
 
+def sanitize_agent_name(agent: str) -> str:
+    """Strip anything but safe filename chars so `agent` can't escape the rules dir."""
+    cleaned = re.sub(r"[^A-Za-z0-9_-]", "", agent)[:64]
+    return cleaned or "orchestrator"
+
+
 def get_agent_identity() -> str:
     """Determine which agent this terminal is. Priority: env var > file > default."""
     agent = os.environ.get("PEER_AGENT")
     if agent:
-        return agent
+        return sanitize_agent_name(agent)
 
     identity_file = PROJECT_ROOT / ".peer-identity"
     if identity_file.exists():
-        return identity_file.read_text().strip()
+        lines = identity_file.read_text().splitlines()
+        first_line = lines[0].strip() if lines else ""
+        if first_line:
+            return sanitize_agent_name(first_line)
 
     return "orchestrator"
 

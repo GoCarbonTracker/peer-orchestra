@@ -1,6 +1,6 @@
 {
   "name": "peer-orchestra",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Multi-agent orchestration for Claude Code \u2014 themed persona agents, structured dispatch protocol, and self-learning hooks via npx.",
   "main": "src/index.js",
   "bin": {
@@ -10,6 +10,7 @@
     "src/",
     "themes/",
     "commands/",
+    "docs/",
     "README.md",
     "LICENSE"
   ],
@@ -34,5 +35,9 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "homepage": "https://github.com/varunmoka7/peer-orchestra#readme",
+  "bugs": {
+    "url": "https://github.com/varunmoka7/peer-orchestra/issues"
   }
 }
