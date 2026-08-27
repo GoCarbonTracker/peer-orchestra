@@ -30,7 +30,6 @@ npx peer-orchestra init
 The wizard asks:
 1. **Theme** — Genshin Impact characters or generic role names
 2. **Orchestrator name** — who coordinates your team (default: your username)
-3. **BMAD** — optional structured coding workflow (epic -> story -> implement)
 
 That's it. Your `.claude/` directory now has agent personas (12, or 16 for the genshin theme, which adds 4 Archon personas), dispatch protocols, self-learning hooks, and slash commands.
 
@@ -104,4 +103,4 @@ npx peer-orchestra init --dry-run --theme genshin --name Paimon --no-interactive
 
 **Re-ran `init` and nothing seems to have changed** — `init` skips any file that already exists unless you pass `--force`. A plain re-run without `--force` will print `SKIP (exists)` for every persona, hook, and command file — that's expected, not a bug. Use `--force` to update framework files to the version you just fetched.
 
-**Want to start over, or remove Peer Orchestra entirely?** Run `npx peer-orchestra uninstall` (add `--dry-run` to preview first). This removes the personas, hooks, commands, `.claude/agent-memory/`, the hook entries and `.gitignore` line it added, and the `# Peer Orchestra` block in `CLAUDE.md`. It does not remove `_bmad/` or `_bmad-output/` — delete those manually if you opted into BMAD.
+**Want to start over, or remove Peer Orchestra entirely?** Run `npx peer-orchestra uninstall` (add `--dry-run` to preview first). This removes the personas, hooks, commands, `.claude/agent-memory/`, the hook entries and `.gitignore` line it added, and the `# Peer Orchestra` block in `CLAUDE.md`.

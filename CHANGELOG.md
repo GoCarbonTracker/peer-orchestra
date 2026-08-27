@@ -2,6 +2,35 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.0] — 2026-08-27
+
+Repo restructure. No change to what the tool does for users beyond the BMAD removal below.
+
+### Removed — BREAKING
+
+- **`--bmad` flag and the BMAD scaffold.** `init` no longer creates `_bmad/` or `_bmad-output/`, no longer prompts about BMAD, and the CLAUDE.md template no longer carries a BMAD section. peer-orchestra scaffolds multi-agent structure; it should not bundle one particular planning methodology. Anyone using BMAD can install it directly.
+
+  **Migration:** if you scripted `npx peer-orchestra init --bmad`, drop the flag — it is now ignored rather than an error, so existing scripts still complete, they just produce no BMAD files. Already-installed `_bmad/` directories are untouched; `uninstall` never removed them and still doesn't.
+
+  The interactive wizard now asks two questions (theme, name) instead of three.
+
+### Fixed
+
+- **Internal documents were shipping to npm.** `.npmignore` was silently dead — npm ignores it entirely when `package.json` has a `files` array, which this package does. Design analyses and research notes were therefore included in the published tarball. `.npmignore` is deleted and `files` now lists only the four user-facing guides. Verified with `npm pack --dry-run`.
+
+### Changed
+
+- `src/index.js` split from one 900-line file into `src/commands/{init,uninstall}.js` and `src/lib/{fs-utils,settings,claude-md,preflight,python,state,version}.js`. Mechanical extraction — no behaviour changes. `src/index.js` is now an 83-line entry point.
+- `src/templates/` moved to top-level `templates/`. Those files are payload copied into a user's project, not program source; keeping them under `src/` implied otherwise.
+- Internal documents (design analysis, repo audit, research) moved to `docs/internal/` and excluded from the package. `docs/` now holds only user-facing guides.
+- Removed `_bmad-output/` — this project's own planning artifacts, which had no reason to be in a published tool's repository. Preserved in git history.
+- Added `prepublishOnly` running the test suite, so a failing build cannot be published.
+
+### Added
+
+- **Uninstall round-trip test** (Suite 6): asserts that everything `init` installed is removed and that user-authored `settings.json`, `CLAUDE.md`, and `.gitignore` are restored byte-for-byte. This gap let a real path bug through during the restructure — `uninstall` was looking for the slash commands in the wrong directory and would have left them behind.
+- Suite 4 repurposed to assert BMAD coupling cannot silently return, including that a stale `--bmad` flag in a user's script produces a clean install rather than a crash.
+
 ## [0.2.0] — 2026-08-27
 
 0.1.0 was never published to npm — this is the first public release. Everything below reflects work done since the plugin-to-npx pivot.

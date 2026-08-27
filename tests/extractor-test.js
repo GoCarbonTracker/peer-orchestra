@@ -12,7 +12,7 @@ const path = require('path');
 const os = require('os');
 
 const TEST_DIR = path.join(os.tmpdir(), 'extractor-test-' + Date.now());
-const EXTRACTOR = path.join(__dirname, '..', 'src', 'templates', 'hooks', 'session-learning-extractor.py');
+const EXTRACTOR = path.join(__dirname, '..', 'templates', 'hooks', 'session-learning-extractor.py');
 let passed = 0;
 let failed = 0;
 

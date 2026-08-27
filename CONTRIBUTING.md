@@ -7,7 +7,7 @@ git clone https://github.com/varunmoka7/peer-orchestra.git
 cd peer-orchestra
 ```
 
-No install step — this is a zero-dependency Node CLI. `src/index.js` runs on Node's built-in `fs`, `path`, `readline`, and `child_process` modules only. The scaffolded hooks (`src/templates/hooks/*.py`) use only the Python standard library — no `pip install` needed to run or test them, just Python 3.8+ on `PATH`.
+No install step — this is a zero-dependency Node CLI. `src/index.js` runs on Node's built-in `fs`, `path`, `readline`, and `child_process` modules only. The scaffolded hooks (`templates/hooks/*.py`) use only the Python standard library — no `pip install` needed to run or test them, just Python 3.8+ on `PATH`.
 
 ## Running Tests
 
@@ -16,7 +16,7 @@ npm test
 ```
 
 This runs two suites:
-- `tests/scaffold-test.js` — runs `peer-orchestra init` against temp directories with both themes, checks the full file structure, merge idempotency (re-running doesn't duplicate hooks/plugins/CLAUDE.md sections), `--force` overwrite behavior, BMAD scaffolding, and scans output for accidentally leaked project-specific references.
+- `tests/scaffold-test.js` — runs `peer-orchestra init` against temp directories with both themes, checks the full file structure, merge idempotency (re-running doesn't duplicate hooks/plugins/CLAUDE.md sections), `--force` overwrite behavior, that no planning-methodology scaffold is bundled in, an uninstall round-trip (checks user-authored files are restored byte-for-byte), and scans output for accidentally leaked project-specific references.
 - `tests/extractor-test.js` — exercises `session-learning-extractor.py` directly against a mock session transcript: pattern detection (corrections, quality gates, pushback), SQLite schema, deduplication on re-run, and graceful handling of missing/malformed input.
 
 Both need `python3` on `PATH` (the extractor test shells out to it). CI runs this on Node 18/20/22 with Python 3 available — see `.github/workflows/ci.yml`.
@@ -24,11 +24,22 @@ Both need `python3` on `PATH` (the extractor test shells out to it). CI runs thi
 ## File Layout
 
 ```
-src/index.js              # CLI entry point — the init/uninstall wizard
-src/templates/             # Files scaffolded into a target project
+src/
+  index.js                 # CLI entry point — 83 lines: parseArgs, usage, command dispatch
+  commands/
+    init.js                 # the init flow
+    uninstall.js            # the uninstall flow
+  lib/
+    fs-utils.js             # ask(), copyDir()
+    settings.js             # settings.json read/merge + installed hook commands
+    claude-md.js            # CLAUDE.md merge/strip
+    preflight.js            # node/python/settings validation
+    python.js               # findPython()
+    state.js                # .claude/.peer-orchestra.json theme state
+    version.js               # getVersion()
+templates/                  # Files scaffolded into a target project
   hooks/                    # Self-learning hook scripts (Python stdlib)
   rules/                    # Dispatch protocol + common rules, theme-independent
-  bmad/                     # Minimal BMAD workflow scaffold (--bmad flag)
   mcp/                      # claude-peers memory-recall helper script
   CLAUDE.md.template        # Orchestrator instructions merged into the target project
 themes/
@@ -38,6 +49,7 @@ themes/
 commands/                  # 4 slash commands, installed to .claude/commands/
 tests/                     # scaffold-test.js + extractor-test.js
 docs/                      # User-facing guides (not code — read before changing behavior they document)
+docs/internal/             # Design analysis, repo audit, research — not shipped to npm
 ```
 
 If you change what `init` or `uninstall` writes, update `README.md`'s "What Gets Installed" table and `docs/quick-start.md` in the same change — they list every path by hand and will drift silently otherwise.

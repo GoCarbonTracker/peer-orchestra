@@ -60,14 +60,3 @@ Agents learn from corrections:
 
 This happens automatically via hooks in `.claude/hooks/`.
 
-<!-- BMAD_SECTION_START -->
-## BMAD Workflow
-
-**ALWAYS follow BMAD workflow before any implementation:** Epic -> Story -> Readiness Check -> Implement.
-
-- Never dispatch code work without BMAD stories
-- Stories need acceptance criteria and test plans
-- Quality gates must pass before marking done
-- Track status in `_bmad-output/planning-artifacts/plans/STATUS.md`
-- Log lessons in `_bmad-output/planning-artifacts/lessons.md`
-<!-- BMAD_SECTION_END -->
