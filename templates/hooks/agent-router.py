@@ -120,9 +120,10 @@ def main() -> int:
     except (json.JSONDecodeError, EOFError):
         input_data = {}
 
-    prompt = input_data.get("prompt", "")
+    # Claude Code sends the prompt as "user_prompt" on UserPromptSubmit.
+    # "prompt" is kept as a fallback for older payload shapes.
+    prompt = input_data.get("user_prompt") or input_data.get("prompt", "")
     if not prompt:
-        # Fallback: check argv and env
         prompt = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("PROMPT", "")
     if not prompt:
         return 0
@@ -139,8 +140,10 @@ def main() -> int:
             lines.append(f"Matching keywords: {', '.join(repr(k) for k in m['keywords'])}")
 
         print(json.dumps({
-            "hookEventName": "UserPromptSubmit",
-            "message": "\n".join(lines),
+            "hookSpecificOutput": {
+                "hookEventName": "UserPromptSubmit",
+                "additionalContext": "\n".join(lines),
+            }
         }))
 
     return 0

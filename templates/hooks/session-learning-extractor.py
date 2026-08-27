@@ -379,10 +379,14 @@ def main() -> int:
     saved = save_patterns(patterns, session_id)
 
     if saved > 0:
-        print(json.dumps({
-            "hookEventName": input_data.get("hook_event_name", "SessionEnd"),
-            "message": f"Session learning extractor: {saved} patterns saved from {len(messages)} peer messages",
-        }))
+        # SessionEnd: the session is closing, so there is no context left to
+        # inject into. This is a log line, not additionalContext — write it to
+        # stderr rather than pretending it reaches the model.
+        print(
+            f"Session learning extractor: {saved} patterns saved "
+            f"from {len(messages)} peer messages",
+            file=sys.stderr,
+        )
 
     return 0
 

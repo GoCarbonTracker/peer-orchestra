@@ -76,8 +76,10 @@ def main() -> int:
             lines.append(f"- {m}")
         message = "\n".join(lines)
         print(json.dumps({
-            "hookEventName": "SessionStart",
-            "message": message,
+            "hookSpecificOutput": {
+                "hookEventName": "SessionStart",
+                "additionalContext": message,
+            }
         }))
 
     return 0
