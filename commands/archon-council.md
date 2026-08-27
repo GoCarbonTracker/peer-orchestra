@@ -1,11 +1,11 @@
 ---
 name: archon-council
-description: Spawn all 7 Archons for a strategic debate on a topic. Each Archon argues from their elemental philosophy. Paimon moderates and synthesizes. Use for architecture decisions, design debates, or any question that benefits from multiple perspectives.
+description: Spawn the 4 Archons plus 3 domain agents reused as honorary Archons for a strategic debate on a topic. Each argues from their elemental philosophy. Paimon moderates and synthesizes. Use for architecture decisions, design debates, or any question that benefits from multiple perspectives.
 ---
 
 # Archon Council
 
-When the Traveler calls the Archon Council, all 7 Archons debate from their philosophical positions.
+When the Traveler calls the Archon Council, the 4 dedicated Archons and 3 domain agents standing in as honorary Archons debate from their philosophical positions.
 
 ## How It Works
 
@@ -21,6 +21,8 @@ When the Traveler calls the Archon Council, all 7 Archons debate from their phil
 | **Furina** | Hydro | Justice | Fairness, documentation, transparency. "Is this well-justified?" |
 | **Mavuika** | Pyro | War | Bold action, competitive advantage, speed. "What wins?" |
 | **Tsaritsa** | Cryo | Love | User empathy, end-user impact, accessibility. "Who does this serve?" |
+
+Venti, Raiden Shogun, Mavuika, and Tsaritsa are the 4 dedicated Archon personas (`themes/genshin/archons/`). Zhongli, Nahida, and Furina are regular domain agents (`themes/genshin/agents/`) reused here as honorary Archons for their elemental philosophy.
 
 3. Each Archon gives a **2-3 sentence position** — not an essay
 4. After all 7 speak, Paimon **synthesizes** the consensus and conflicts

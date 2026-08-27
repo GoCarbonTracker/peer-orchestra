@@ -1,7 +1,7 @@
 {
   "name": "peer-orchestra",
   "version": "0.1.0",
-  "description": "Multi-agent orchestration for Claude Code — themed persona agents, structured dispatch protocol, and self-learning hooks via npx.",
+  "description": "Multi-agent orchestration for Claude Code \u2014 themed persona agents, structured dispatch protocol, and self-learning hooks via npx.",
   "main": "src/index.js",
   "bin": {
     "peer-orchestra": "src/index.js"
@@ -15,7 +15,8 @@
   ],
   "scripts": {
     "test": "node tests/scaffold-test.js && node tests/extractor-test.js",
-    "lint": "echo 'No lint configured yet'"
+    "lint": "echo 'No lint configured yet'",
+    "test:all": "node tests/scaffold-test.js; s=$?; node tests/extractor-test.js; e=$?; exit $((s||e))"
   },
   "keywords": [
     "claude-code",
@@ -29,7 +30,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/GoCarbonTracker/peer-orchestra.git"
+    "url": "https://github.com/varunmoka7/peer-orchestra.git"
   },
   "engines": {
     "node": ">=18.0.0"

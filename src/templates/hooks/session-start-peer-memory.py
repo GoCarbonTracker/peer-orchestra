@@ -6,6 +6,7 @@ import os
 import sqlite3
 import sys
 from pathlib import Path
+from typing import List
 
 
 PROJECT_ROOT = Path.cwd()
@@ -23,7 +24,7 @@ def get_agent_name() -> str:
     return "orchestrator"
 
 
-def recall_memories(agent: str, limit: int = 10) -> list[str]:
+def recall_memories(agent: str, limit: int = 10) -> List[str]:
     """Read recent memories from agent's SQLite DB."""
     db_path = AGENT_MEMORY_DIR / f"{agent}.db"
     if not db_path.exists():

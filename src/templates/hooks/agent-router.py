@@ -6,12 +6,13 @@ import os
 import re
 import sys
 from pathlib import Path
+from typing import Dict, List
 
 
 PROJECT_ROOT = Path.cwd()
 
 # Default keyword routes — used when agent files lack ## Abilities sections
-DEFAULT_ROUTES: dict[str, list[str]] = {
+DEFAULT_ROUTES: Dict[str, List[str]] = {
     "backend": ["API", "database", "backend", "performance", "system design", "architecture"],
     "frontend": ["frontend", "UI", "dashboard", "React", "CSS", "component", "design", "visualization"],
     "data": ["data", "extract", "enrich", "entity", "knowledge base", "KB", "schema", "quality"],
@@ -26,13 +27,13 @@ DEFAULT_ROUTES: dict[str, list[str]] = {
 }
 
 
-def discover_agents() -> dict[str, dict]:
+def discover_agents() -> Dict[str, dict]:
     """Auto-discover agents from .claude/rules/agent-*.md files.
 
     Returns dict of {name: {"domain": str, "keywords": list[str]}}.
     """
     rules_dir = PROJECT_ROOT / ".claude" / "rules"
-    agents: dict[str, dict] = {}
+    agents: Dict[str, dict] = {}
 
     if not rules_dir.exists():
         return agents
@@ -43,7 +44,7 @@ def discover_agents() -> dict[str, dict]:
             continue
 
         domain = ""
-        keywords: list[str] = []
+        keywords: List[str] = []
 
         try:
             content = f.read_text(errors="replace")
@@ -77,7 +78,7 @@ def discover_agents() -> dict[str, dict]:
     return agents
 
 
-def route_prompt(prompt: str, agents: dict[str, dict]) -> list[dict]:
+def route_prompt(prompt: str, agents: Dict[str, dict]) -> List[dict]:
     """Match prompt keywords to agents."""
     prompt_lower = prompt.lower()
     matches = []

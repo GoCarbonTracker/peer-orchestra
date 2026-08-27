@@ -36,11 +36,10 @@ This is a brownfield project — a functional codebase (68 files) exists with 16
 
 ### What Makes This Special
 
-1. **Lore-grounded personas** — each theme has a knowledge base built from real wiki sources (Genshin wiki, Narutopedia, etc.). Agent personalities are generated from actual character data — traits, relationships, arcs, decision patterns — not surface-level role labels. The open-source lore pipeline ships as a tool for community theme creators.
-2. **Orchestrator design as IP** — the dispatch protocol (typed messages, priority levels, retry limits, escalation rules), quality gates, synthesis protocol, context budget management, and team patterns (TDD Loop, Build+Validate, Research+Docs, Implement+Review) are the real intellectual property. This is an orchestration engine, not just a persona installer.
-3. **Persistent cross-session learning** — agents save corrections, domain specializations, and quality gate outcomes to SQLite. Session N+1 recalls session N's lessons filtered by agent identity. Agents genuinely improve the more you use them.
-4. **BMAD workflow integration** — optional but native. Gives agents structured coding discipline: epic -> story -> implement -> verify. The only multi-agent tool that also provides an engineering methodology.
-5. **Zero lock-in** — scaffolds files into `.claude/`; users own everything, can customize anything, no runtime dependency. MIT licensed, free forever.
+1. **Orchestrator design as IP** — the dispatch protocol (typed messages, priority levels, retry limits, escalation rules), quality gates, synthesis protocol, context budget management, and team patterns (TDD Loop, Build+Validate, Research+Docs, Implement+Review) are the real intellectual property. This is an orchestration engine, not just a persona installer.
+2. **Persistent cross-session learning** — agents save corrections, domain specializations, and quality gate outcomes to SQLite. Session N+1 recalls session N's lessons filtered by agent identity. Agents genuinely improve the more you use them.
+3. **BMAD workflow integration** — optional but native. Gives agents structured coding discipline: epic -> story -> implement -> verify. The only multi-agent tool that also provides an engineering methodology.
+4. **Zero lock-in** — scaffolds files into `.claude/`; users own everything, can customize anything, no runtime dependency. MIT licensed, free forever.
 
 ## Project Classification
 
@@ -293,13 +292,7 @@ Peer Orchestra operates within Claude Code's extension ecosystem. These constrai
 
 ### Detected Innovation Areas
 
-**1. Lore-Grounded Persona Generation (New Paradigm)**
-
-No existing multi-agent framework generates agent personalities from structured knowledge bases built on real fictional character data. Most systems use role labels ("backend engineer") or surface personality traits ("friendly, detail-oriented"). Peer Orchestra's pipeline — wiki scrape -> character profile extraction -> KB construction (graphify/HyperGraphRAG) -> agent.md generation — produces agents grounded in actual character lore: decision patterns derived from story arcs, domain expertise mapped from abilities, personality traits extracted from dialogue patterns and relationships.
-
-This is a new paradigm in AI agent design: personality as a structured data problem, not a prompt engineering problem.
-
-**2. Orchestrator Intelligence Design (Novel Combination)**
+**1. Orchestrator Intelligence Design (Novel Combination)**
 
 The orchestrator's dispatch protocol combines patterns from engineering management, military command structures, and game party systems into a novel AI coordination framework:
 - **Typed message protocol** (dispatch/followup/relay/correction) — not ad-hoc chat
@@ -311,7 +304,7 @@ The orchestrator's dispatch protocol combines patterns from engineering manageme
 
 No comparable framework combines all of these in one system.
 
-**3. Self-Learning Agent Evolution (AI-Native Growth)**
+**2. Self-Learning Agent Evolution (AI-Native Growth)**
 
 Agents don't just persist data — they evolve through a structured learning pipeline:
 - Corrections extracted from session transcripts via JSONL parsing

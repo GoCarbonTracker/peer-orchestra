@@ -255,6 +255,8 @@ All commands are markdown instruction files — they guide Claude behavior, no e
 - No `description` in package.json (it exists but matches the plugin description)
 - No `prepublishOnly` or validation scripts
 
+> **Resolved (2026-08-27):** the repo was transferred to `varunmoka7`, `.claude-plugin/plugin.json` has since been removed as part of the plugin -> npx migration, and `package.json`'s `repository.url` was corrected to `https://github.com/varunmoka7/peer-orchestra.git`. This section is left unedited as a historical record of the org/URL inconsistency at the time of this audit.
+
 ---
 
 ## 8. plugin.json State (`.claude-plugin/plugin.json`)

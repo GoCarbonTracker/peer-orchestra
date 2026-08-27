@@ -392,7 +392,7 @@ Wiki Source (e.g., Genshin Wiki)
     ↓ scrape character pages
 Character Profiles (structured data)
     ↓ extract: personality, abilities, relationships, decision patterns
-Knowledge Base (graphify / HyperGraphRAG)
+Knowledge Base (graph-based KB tool)
     ↓ query KB for relevant traits per engineering role
 Agent .md Files (grounded in lore)
     ↓ commit to themes/{theme}/agents/

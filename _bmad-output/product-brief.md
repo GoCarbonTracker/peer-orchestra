@@ -61,15 +61,13 @@ Users bring their own agents (open additional Claude Code terminals). Peer Orche
 
 ### Key Differentiators
 
-1. **Lore-grounded personas** — each theme has a dedicated knowledge base built from legitimate wiki sources (Genshin wiki, Narutopedia, Marvel wiki, etc.). Agent personas are generated from real character data — personality traits, relationships, story arcs, decision patterns — not surface-level labels. This makes every agent genuinely unique and deeply consistent with their source material. Pipeline: scrape wiki -> extract character profiles -> build KB (graphify/HyperGraphRAG) -> generate agent .md files grounded in actual lore.
-2. **Personality-first agents** — themed character packs (Genshin, Generic, future: Naruto, Marvel, DC, custom) that make agents memorable and consistent, not just role labels
-3. **Persistent cross-session learning** — agents remember corrections, build domain specializations, and improve over time via hooks and SQLite-backed memory
+1. **Personality-first agents** — themed character packs (Genshin, Generic, future: Naruto, Marvel, DC, custom) that make agents memorable and consistent, not just role labels
+2. **Persistent cross-session learning** — agents remember corrections, build domain specializations, and improve over time via hooks and SQLite-backed memory
 3. **Structured dispatch protocol** — not ad-hoc chat; typed message formats (dispatch, followup, relay, correction) with priority levels and retry limits
-4. **Theme extensibility (powered by lore KB)** — interactive wizard at install, community-contributed theme packs, separation of personality from capability
+4. **Theme extensibility** — interactive wizard at install, community-contributed theme packs, separation of personality from capability
 5. **Zero lock-in** — scaffolds files into your project's `.claude/` directory; you own everything, can customize anything, no runtime dependency
 6. **BMAD workflow integration** — optional layer that gives agents structured coding discipline (the only multi-agent tool that also gives you an engineering methodology)
 7. **Claude Code-native** — built for claude-peers MCP, not a separate runtime; agents use Claude's actual tool system
-8. **Open-source lore pipeline** — the same KB pipeline that generates our themes is shipped as a tool, so community theme creators can build lore-grounded agents for any franchise
 
 ---
 
@@ -203,12 +201,6 @@ Since Peer Orchestra is MIT-licensed and free forever, "business" objectives are
 - Quick start guide (< 2 minutes to first dispatch)
 - Theme creation guide for contributors
 - Agent customization guide
-
-**7. Lore-Grounded Theme Pipeline**
-- Per-theme KB built from legitimate wiki sources (Genshin wiki, Narutopedia, Marvel wiki, etc.)
-- Character extraction pipeline (profiles, traits, relationships, arcs)
-- Agent .md generation grounded in KB data
-- v1: Genshin + Generic. Post-launch: Naruto, Marvel, DC, LOTR via same pipeline.
 
 ### Out of Scope for MVP
 

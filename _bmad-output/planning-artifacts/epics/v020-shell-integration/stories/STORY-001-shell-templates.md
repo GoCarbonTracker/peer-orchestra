@@ -31,8 +31,7 @@ duplicating logic across rc-file editors.
 Each snippet defines:
 
 1. **`peer_orch_launch()`** — universal launcher. Takes optional first
-   arg = persona name. Sets `PEER_AGENT=<name>` (and `GCT_AGENT` as a
-   compat alias when the user opts in via env), sends OSC title escape
+   arg = persona name. Sets `PEER_AGENT=<name>`, sends OSC title escape
    to the controlling tty, spawns a background watchdog (fast-burst
    phase + steady-state re-sends per Epic D4), then `exec`s
    `claude --dangerously-skip-permissions

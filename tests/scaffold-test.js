@@ -116,9 +116,11 @@ try {
   assert(!!settings.hooks, 'has hooks');
   assert(!!settings.hooks.SessionStart, 'SessionStart configured');
   assert(!!settings.hooks.SessionEnd, 'SessionEnd configured');
-  assert(!!settings.hooks.PreCompact, 'PreCompact configured');
+  assert(!settings.hooks.PreCompact, 'PreCompact NOT configured (re-scans whole transcript)');
   assert(!!settings.hooks.UserPromptSubmit, 'UserPromptSubmit configured');
   assert(settings.plugins?.homunculus === true, 'homunculus plugin enabled');
+  const allHooks = Object.values(settings.hooks).flatMap((e) => e.flatMap((m) => m.hooks));
+  assert(allHooks.every((h) => typeof h.timeout === 'number'), 'every hook has a timeout');
 } catch {
   assert(false, 'settings.json is valid JSON');
 }
@@ -298,6 +300,40 @@ runInit(noBmadDir, '--theme genshin --name Paimon');
 console.log('\nBMAD disabled:');
 assert(!fileExists(noBmadDir, '_bmad'), 'no _bmad/ directory');
 assert(!fileContains(noBmadDir, 'CLAUDE.md', 'BMAD Workflow'), 'no BMAD section in CLAUDE.md');
+
+// ============================================================
+// TEST SUITE 5: Overwrite Safety
+// ============================================================
+console.log(`\n${'='.repeat(60)}`);
+console.log('TEST SUITE 5: Overwrite Safety');
+console.log(`${'='.repeat(60)}\n`);
+
+const safetyDir = path.join(BASE_DIR, 'overwrite-safety-test');
+fs.mkdirSync(safetyDir, { recursive: true });
+runInit(safetyDir, '--theme genshin --name Paimon');
+
+const SENTINEL = 'USER-EDIT-MUST-SURVIVE';
+const editedPersona = path.join(safetyDir, '.claude/rules/agent-albedo.md');
+const editedHook = path.join(safetyDir, '.claude/hooks/agent-router.py');
+fs.writeFileSync(editedPersona, SENTINEL);
+fs.writeFileSync(editedHook, SENTINEL);
+
+console.log('Re-init without --force (user edits must survive):');
+runInit(safetyDir, '--theme genshin --name Paimon');
+assert(fs.readFileSync(editedPersona, 'utf-8') === SENTINEL, 'edited persona preserved');
+assert(fs.readFileSync(editedHook, 'utf-8') === SENTINEL, 'edited hook preserved');
+
+console.log('\nRe-init with --force (framework files update):');
+runInit(safetyDir, '--theme genshin --name Paimon --force');
+assert(fs.readFileSync(editedPersona, 'utf-8') !== SENTINEL, 'edited persona overwritten with --force');
+assert(fs.readFileSync(editedHook, 'utf-8') !== SENTINEL, 'edited hook overwritten with --force');
+
+console.log('\nSlash commands and archons installed:');
+assert(fileExists(safetyDir, '.claude/commands/dispatch.md'), '.claude/commands/dispatch.md installed');
+assert(fileExists(safetyDir, '.claude/commands/party.md'), '.claude/commands/party.md installed');
+assert(fileExists(safetyDir, '.claude/commands/orchestra-status.md'), '.claude/commands/orchestra-status.md installed');
+assert(fileExists(safetyDir, '.claude/commands/archon-council.md'), '.claude/commands/archon-council.md installed');
+assert(fileExists(safetyDir, '.claude/rules/agent-venti.md'), 'genshin archon personas installed');
 
 // ============================================================
 // Cleanup & Summary

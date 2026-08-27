@@ -123,7 +123,8 @@ function generateSettingsJson(targetDir, { dryRun = false } = {}) {
           hooks: [
             {
               type: 'command',
-              command: 'python3 .claude/hooks/agent-router.py "$PROMPT"',
+              command: 'python3 .claude/hooks/agent-router.py',
+              timeout: 10,
             },
           ],
         },
@@ -135,10 +136,12 @@ function generateSettingsJson(targetDir, { dryRun = false } = {}) {
             {
               type: 'command',
               command: 'python3 .claude/hooks/agent-persona-loader.py',
+              timeout: 10,
             },
             {
               type: 'command',
               command: 'python3 .claude/hooks/session-start-peer-memory.py',
+              timeout: 10,
             },
           ],
         },
@@ -150,17 +153,7 @@ function generateSettingsJson(targetDir, { dryRun = false } = {}) {
             {
               type: 'command',
               command: 'python3 .claude/hooks/session-learning-extractor.py',
-            },
-          ],
-        },
-      ],
-      PreCompact: [
-        {
-          matcher: '',
-          hooks: [
-            {
-              type: 'command',
-              command: 'python3 .claude/hooks/session-learning-extractor.py',
+              timeout: 10,
             },
           ],
         },
@@ -314,17 +307,28 @@ async function main() {
   const rulesDir = path.join(targetDir, '.claude', 'rules');
   if (!dryRun) fs.mkdirSync(rulesDir, { recursive: true });
 
-  // Agent files always overwrite on re-init (supports theme switching)
+  // Existing files are preserved unless --force is passed
+  let totalSkipped = 0;
+
   const themeAgents = path.join(themePath, 'agents');
   if (fs.existsSync(themeAgents)) {
-    const result = copyDir(themeAgents, rulesDir, { force: true, dryRun });
+    const result = copyDir(themeAgents, rulesDir, { force, dryRun });
+    totalSkipped += result.skipped;
     console.log(`  Installed ${theme} agent personas into .claude/rules/ (${result.copied} files)`);
   }
 
-  // Common rules always overwrite (keep protocol files current)
+  // Archon personas ship with the genshin theme only
+  const themeArchons = path.join(themePath, 'archons');
+  if (fs.existsSync(themeArchons)) {
+    const result = copyDir(themeArchons, rulesDir, { force, dryRun });
+    totalSkipped += result.skipped;
+    console.log(`  Installed ${theme} archon personas into .claude/rules/ (${result.copied} files)`);
+  }
+
   const commonRules = path.join(TEMPLATES_DIR, 'rules');
   if (fs.existsSync(commonRules)) {
-    const result = copyDir(commonRules, rulesDir, { force: true, dryRun });
+    const result = copyDir(commonRules, rulesDir, { force, dryRun });
+    totalSkipped += result.skipped;
     console.log(`  Installed dispatch protocols and common rules (${result.copied} files)`);
   }
 
@@ -355,13 +359,27 @@ async function main() {
   const hooksDir = path.join(targetDir, '.claude', 'hooks');
   if (!dryRun) fs.mkdirSync(hooksDir, { recursive: true });
   const templateHooks = path.join(TEMPLATES_DIR, 'hooks');
-  // Hooks always overwrite (keep hook scripts current)
   if (fs.existsSync(templateHooks)) {
-    const result = copyDir(templateHooks, hooksDir, { force: true, dryRun });
+    const result = copyDir(templateHooks, hooksDir, { force, dryRun });
+    totalSkipped += result.skipped;
     console.log(`  Installed self-learning hooks (${result.copied} files)`);
   }
 
-  // 4. Generate settings.json
+  // 4. Copy slash commands
+  const commandsSrc = path.join(__dirname, '..', 'commands');
+  if (fs.existsSync(commandsSrc)) {
+    const commandsDir = path.join(targetDir, '.claude', 'commands');
+    if (!dryRun) fs.mkdirSync(commandsDir, { recursive: true });
+    const result = copyDir(commandsSrc, commandsDir, { force, dryRun });
+    totalSkipped += result.skipped;
+    console.log(`  Installed slash commands into .claude/commands/ (${result.copied} files)`);
+  }
+
+  if (totalSkipped > 0) {
+    console.log(`\n  ${totalSkipped} existing file(s) left untouched. Re-run with --force to update framework files.`);
+  }
+
+  // 5. Generate settings.json
   generateSettingsJson(targetDir, { dryRun });
 
   // 5. Determine BMAD choice (before CLAUDE.md merge, so template is conditional)
